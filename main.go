@@ -72,23 +72,11 @@ func parseFileLinesToSlice(filePath string) ([]string, error) {
 	return lines, nil
 }
 
-
 func sliceContains(slice []string, value string) bool {
-    for _, v := range slice {
-        if v == value {
-            return true
-        }
-    }
-    return false
-}
-
-// joinSlices adds the element of the `new` slice
-// into the `existing` slice, only if not already there
-func joinSlices(new []string, existing []string) []string {
-    for _, i := range new {
-        if !sliceContains(existing, i) {
-            existing = append(existing, i)
-        }
-    }
-    return existing
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }

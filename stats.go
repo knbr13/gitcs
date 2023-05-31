@@ -192,3 +192,25 @@ func printCell(val int, today bool) {
 
 	fmt.Printf(escape+str+"\033[0m", val)
 }
+
+// printMonths prints the month names in the first line, determining when the month
+// changed between switching weeks
+func printMonths() {
+	week := getBeginningOfDay(time.Now()).Add(-(daysInLastSixMonths * time.Hour * 24))
+	month := week.Month()
+	fmt.Printf("         ")
+	for {
+		if week.Month() != month {
+			fmt.Printf("%s ", week.Month().String()[:3])
+			month = week.Month()
+		} else {
+			fmt.Printf("    ")
+		}
+
+		week = week.Add(7 * time.Hour * 24)
+		if week.After(time.Now()) {
+			break
+		}
+	}
+	fmt.Printf("\n")
+}

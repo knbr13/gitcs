@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 	"log"
-	"fmt"
 	"sort"
 	"time"
 )
@@ -213,4 +213,20 @@ func printMonths() {
 		}
 	}
 	fmt.Printf("\n")
+}
+
+// printDayCol given the day number (0 is Sunday) prints the day name,
+// alternating the rows (prints just 2,4,6)
+func printDayCol(day int) {
+	out := "     "
+	switch day {
+	case 1:
+		out = " Mon "
+	case 3:
+		out = " Wed "
+	case 5:
+		out = " Fri "
+	}
+
+	fmt.Printf(out)
 }

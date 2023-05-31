@@ -8,10 +8,16 @@ import (
 )
 
 func main() {
-	root := "C:\\Users\\superComputer\\Documents" // Replace with the absolute root directory path
+	res, err := scanGitFolders("C:\\Users\\superComputer\\Documents")
+	if err != nil {
+		fmt.Println("Something Went Wrong!", err)
+	}else{
+		fmt.Println(res)
+	}
+}
 
+func scanGitFolders(root string) ([]string, error) {
 	var gitFolders []string
-
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			fmt.Printf("Error accessing path %q: %v\n", path, err)
@@ -34,10 +40,8 @@ func main() {
 
 	if err != nil {
 		fmt.Printf("Error walking the path %q: %v\n", root, err)
+		return []string{}, err
 	} else {
-		fmt.Println("Folders containing .git:")
-		for _, folder := range gitFolders {
-			fmt.Println(folder)
-		}
+		return gitFolders, nil
 	}
 }

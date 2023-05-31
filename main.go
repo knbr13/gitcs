@@ -8,12 +8,7 @@ import (
 )
 
 func main() {
-	res, err := scanGitFolders("C:\\Users\\superComputer\\Documents")
-	if err != nil {
-		fmt.Println("Something Went Wrong!", err)
-	}else{
-		fmt.Println(res)
-	}
+	
 }
 
 func scanGitFolders(root string) ([]string, error) {

@@ -230,3 +230,29 @@ func printDayCol(day int) {
 
 	fmt.Printf(out)
 }
+
+// printCells prints the cells of the graph
+func printCells(cols map[int]column) {
+	printMonths()
+	for j := 6; j >= 0; j-- {
+		for i := weeksInLastSixMonths + 1; i >= 0; i-- {
+			if i == weeksInLastSixMonths+1 {
+				printDayCol(j)
+			}
+			if col, ok := cols[i]; ok {
+				//special case today
+				if i == 0 && j == calcOffset()-1 {
+					printCell(col[j], true)
+					continue
+				} else {
+					if len(col) > j {
+						printCell(col[j], false)
+						continue
+					}
+				}
+			}
+			printCell(0, false)
+		}
+		fmt.Printf("\n")
+	}
+}

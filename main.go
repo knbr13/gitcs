@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,7 +9,7 @@ import (
 )
 
 func main() {
-	
+
 }
 
 func scanGitFolders(root string) ([]string, error) {
@@ -39,4 +40,34 @@ func scanGitFolders(root string) ([]string, error) {
 	} else {
 		return gitFolders, nil
 	}
+}
+
+// parseFileLinesToSlice given a file path string, gets the content
+// of each line and parses it to a slice of strings.
+func parseFileLinesToSlice(filePath string) ([]string, error) {
+	// Open the file
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %s", err)
+	}
+	defer file.Close()
+
+	// Create a scanner to read the file
+	scanner := bufio.NewScanner(file)
+
+	// Create a slice to store the lines
+	var lines []string
+
+	// Read each line of the file
+	for scanner.Scan() {
+		line := scanner.Text()
+		lines = append(lines, line)
+	}
+
+	// Check for any scanner errors
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error while scanning file: %s", err)
+	}
+
+	return lines, nil
 }

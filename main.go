@@ -132,6 +132,10 @@ func addNewSliceElementsToFile(filePath string, newRepos []string) {
 
 // scan scans a new folder for Git repositories
 func scan(folder string) {
+	err := createFileIfNotExist(".gogitlocalstats")
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Printf("Found folders:\n\n")
 	repositories, err := scanGitFolders(folder)
 	if err != nil {

@@ -132,14 +132,12 @@ func scan(folder string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Found folders:\n\n")
 	repositories, err := scanGitFolders(folder)
 	if err != nil {
 		log.Fatal(err)
 	}
 	filePath := getDotFilePath()
 	addNewSliceElementsToFile(filePath, repositories)
-	fmt.Printf("\n\nSuccessfully added\n\n")
 }
 
 func createFileIfNotExist(fileName string) error {

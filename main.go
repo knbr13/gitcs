@@ -91,3 +91,17 @@ func joinSlices(new []string, existing []string) []string {
 	}
 	return existing
 }
+
+// dumpStringsSliceToFile writes content to the file in path `filePath` (overwriting existing content)
+func dumpStringsSliceToFile(lines []string, filePath string) error {
+	// Join the strings into a single string with newline separators
+	content := strings.Join(lines, "\n")
+
+	// Write the content to the file, overwriting the existing content
+	err := os.WriteFile(filePath, []byte(content), 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write file: %s", err)
+	}
+
+	return nil
+}

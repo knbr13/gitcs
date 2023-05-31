@@ -18,6 +18,7 @@ type column []int
 // stats calculates and prints the stats.
 func stats(email string) {
 	commits := processRepositories(email)
+	fmt.Println()
 	printCommitsStats(commits)
 }
 

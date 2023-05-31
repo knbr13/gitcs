@@ -50,6 +50,7 @@ func fillCommits(email string, path string, commits map[int]int) map[int]int {
 	return commits
 }
 
+// getBeginningOfDay given a time.Time calculates the start time of that day
 func getBeginningOfDay(t time.Time) time.Time {
 	year, month, day := t.Date()
 	startOfDay := time.Date(year, month, day, 0, 0, 0, 0, t.Location())

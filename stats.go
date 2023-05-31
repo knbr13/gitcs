@@ -1,6 +1,7 @@
 package main
 
 import (
+	"time"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
@@ -47,4 +48,10 @@ func fillCommits(email string, path string, commits map[int]int) map[int]int {
 	}
 
 	return commits
+}
+
+func getBeginningOfDay(t time.Time) time.Time {
+    year, month, day := t.Date()
+    startOfDay := time.Date(year, month, day, 0, 0, 0, 0, t.Location())
+    return startOfDay
 }

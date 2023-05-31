@@ -4,7 +4,7 @@ The `local-git-contributions-visualizer` is a command line tool written in Go. I
 
 ## Screenshots
 
-![git-local-contributions-visualizer](https://github.com/abdullah-alaadine/local-git-contributions-visualizer/assets/125296663/20937460-c8bc-41bb-90e4-cdb7fefd21f7)
+![git-local-contributions-visualizer](https://github.com/abdullah-alaadine/local-git-contributions-visualizer/assets/screenshot.png)
 
 ## Features
 

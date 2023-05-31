@@ -13,7 +13,6 @@ func main() {
 
 	if folder != "" {
 		scan(folder)
-		return
 	}
 
 	stats(email)

@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"time"
-
+	"sort"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
@@ -119,4 +119,17 @@ func processRepositories(email string) map[int]int {
 	}
 
 	return commits
+}
+
+// sortMapIntoSlice returns a slice of indexes of a map, ordered
+func sortMapIntoSlice(m map[int]int) []int {
+    // order map
+    // To store the keys in slice in sorted order
+    var keys []int
+    for k := range m {
+        keys = append(keys, k)
+    }
+    sort.Ints(keys)
+
+    return keys
 }

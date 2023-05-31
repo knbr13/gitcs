@@ -1,9 +1,9 @@
 package main
 
 import (
-	"time"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
+	"time"
 )
 
 const outOfRange = 99999
@@ -51,7 +51,21 @@ func fillCommits(email string, path string, commits map[int]int) map[int]int {
 }
 
 func getBeginningOfDay(t time.Time) time.Time {
-    year, month, day := t.Date()
-    startOfDay := time.Date(year, month, day, 0, 0, 0, 0, t.Location())
-    return startOfDay
+	year, month, day := t.Date()
+	startOfDay := time.Date(year, month, day, 0, 0, 0, 0, t.Location())
+	return startOfDay
+}
+
+// countDaysSinceDate counts how many days passed since the passed `date`
+func countDaysSinceDate(date time.Time) int {
+	days := 0
+	now := getBeginningOfDay(time.Now())
+	for date.Before(now) {
+		date = date.Add(time.Hour * 24)
+		days++
+		if days > daysInLastSixMonths {
+			return outOfRange
+		}
+	}
+	return days
 }

@@ -241,7 +241,7 @@ func printDayCol(day int) {
 		out = " Fri "
 	}
 
-	fmt.Printf(out)
+	fmt.Print(out)
 }
 
 // printCells prints the cells of the graph

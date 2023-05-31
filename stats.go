@@ -1,9 +1,11 @@
 package main
 
 import (
+	"log"
+	"time"
+
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
-	"time"
 )
 
 const outOfRange = 99999
@@ -95,4 +97,26 @@ func calcOffset() int {
 	}
 
 	return offset
+}
+
+// processRepositories given a user email, returns the
+// commits made in the last 6 months
+func processRepositories(email string) map[int]int {
+	filePath := getDotFilePath()
+	repos, err := parseFileLinesToSlice(filePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	daysInMap := daysInLastSixMonths
+
+	commits := make(map[int]int, daysInMap)
+	for i := daysInMap; i > 0; i-- {
+		commits[i] = 0
+	}
+
+	for _, path := range repos {
+		commits = fillCommits(email, path, commits)
+	}
+
+	return commits
 }

@@ -26,7 +26,7 @@ func scanGitFolders(root string) ([]string, error) {
 		}
 
 		// Skip node_modules directories
-		if info.IsDir() && strings.ToLower(info.Name()) == "node_modules" {
+		if info.IsDir() && (strings.ToLower(info.Name()) == "node_modules" || strings.ToLower(info.Name()) == "vendor") {
 			return filepath.SkipDir
 		}
 

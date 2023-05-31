@@ -3,11 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
-	"log"
-	"os/user"
 )
 
 func main() {
@@ -117,4 +117,15 @@ func dumpStringsSliceToFile(lines []string, filePath string) error {
 	}
 
 	return nil
+}
+
+// addNewSliceElementsToFile given a slice of strings representing paths, stores them
+// to the filesystem
+func addNewSliceElementsToFile(filePath string, newRepos []string) {
+	existingRepos, err := parseFileLinesToSlice(filePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	repos := joinSlices(newRepos, existingRepos)
+	dumpStringsSliceToFile(repos, filePath)
 }

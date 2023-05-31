@@ -15,6 +15,13 @@ const weeksInLastSixMonths = 26
 
 type column []int
 
+// printCommitsStats prints the commits stats
+func printCommitsStats(commits map[int]int) {
+    keys := sortMapIntoSlice(commits)
+    cols := buildCols(keys, commits)
+    printCells(cols)
+}
+
 // fillCommits given a repository found in `path`, gets the commits and
 // puts them in the `commits` map, returning it when completed
 func fillCommits(email string, path string, commits map[int]int) map[int]int {

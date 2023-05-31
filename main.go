@@ -49,7 +49,7 @@ func scanGitFolders(root string) ([]string, error) {
 
 	if err != nil {
 		fmt.Printf("Error walking the path %q: %v\n", root, err)
-		return []string{}, err
+		return nil, err
 	} else {
 		return gitFolders, nil
 	}

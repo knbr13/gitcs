@@ -129,3 +129,15 @@ func addNewSliceElementsToFile(filePath string, newRepos []string) {
 	repos := joinSlices(newRepos, existingRepos)
 	dumpStringsSliceToFile(repos, filePath)
 }
+
+// scan scans a new folder for Git repositories
+func scan(folder string) {
+	fmt.Printf("Found folders:\n\n")
+	repositories, err := scanGitFolders(folder)
+	if err != nil {
+		log.Fatal(err)
+	}
+	filePath := getDotFilePath()
+	addNewSliceElementsToFile(filePath, repositories)
+	fmt.Printf("\n\nSuccessfully added\n\n")
+}

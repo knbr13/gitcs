@@ -71,3 +71,13 @@ func parseFileLinesToSlice(filePath string) ([]string, error) {
 
 	return lines, nil
 }
+
+
+func sliceContains(slice []string, value string) bool {
+    for _, v := range slice {
+        if v == value {
+            return true
+        }
+    }
+    return false
+}

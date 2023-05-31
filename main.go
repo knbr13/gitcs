@@ -81,3 +81,14 @@ func sliceContains(slice []string, value string) bool {
     }
     return false
 }
+
+// joinSlices adds the element of the `new` slice
+// into the `existing` slice, only if not already there
+func joinSlices(new []string, existing []string) []string {
+    for _, i := range new {
+        if !sliceContains(existing, i) {
+            existing = append(existing, i)
+        }
+    }
+    return existing
+}

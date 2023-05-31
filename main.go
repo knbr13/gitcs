@@ -6,10 +6,23 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"log"
+	"os/user"
 )
 
 func main() {
 
+}
+
+func getDotFilePath() string {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dotFile := usr.HomeDir + "/.gogitlocalstats"
+
+	return dotFile
 }
 
 func scanGitFolders(root string) ([]string, error) {

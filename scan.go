@@ -137,7 +137,7 @@ func scan(folder string) {
 		log.Fatal(err)
 	}
 	filePath := getDotFilePath()
-	addNewSliceElementsToFile(filePath, repositories)
+	dumpStringsSliceToFile(repositories, filePath)
 }
 
 func createFileIfNotExist(fileName string) error {

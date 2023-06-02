@@ -81,26 +81,6 @@ func parseFileLinesToSlice(filePath string) ([]string, error) {
 	return lines, nil
 }
 
-func sliceContains(slice []string, value string) bool {
-	for _, v := range slice {
-		if v == value {
-			return true
-		}
-	}
-	return false
-}
-
-// joinSlices adds the element of the `new` slice
-// into the `existing` slice, only if not already there
-func joinSlices(new []string, existing []string) []string {
-	for _, i := range new {
-		if !sliceContains(existing, i) {
-			existing = append(existing, i)
-		}
-	}
-	return existing
-}
-
 // dumpStringsSliceToFile writes content to the file in path `filePath` (overwriting existing content)
 func dumpStringsSliceToFile(lines []string, filePath string) error {
 	// Join the strings into a single string with newline separators
@@ -115,17 +95,6 @@ func dumpStringsSliceToFile(lines []string, filePath string) error {
 	return nil
 }
 
-// addNewSliceElementsToFile given a slice of strings representing paths, stores them
-// to the filesystem
-func addNewSliceElementsToFile(filePath string, newRepos []string) {
-	existingRepos, err := parseFileLinesToSlice(filePath)
-	if err != nil {
-		log.Fatal(err)
-	}
-	repos := joinSlices(newRepos, existingRepos)
-	dumpStringsSliceToFile(repos, filePath)
-}
-
 // scan scans a new folder for Git repositories
 func scan(folder string) {
 	err := createFileIfNotExist(".gogitlocalstats")
@@ -137,7 +106,7 @@ func scan(folder string) {
 		log.Fatal(err)
 	}
 	filePath := getDotFilePath()
-	addNewSliceElementsToFile(filePath, repositories)
+	dumpStringsSliceToFile(repositories, filePath)
 }
 
 func createFileIfNotExist(fileName string) error {

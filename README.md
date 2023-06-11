@@ -17,7 +17,7 @@ The `local-git-contributions-visualizer` is a command line tool written in Go. I
 To install the `local-git-contributions-visualizer`, make sure you have Go installed on your machine. Then, run the following command:
 
 ```bash
-  go get github.com/abdullah-alaadine/local-git-contributions-visualizer
+  go install github.com/abdullah-alaadine/local-git-contributions-visualizer@latest
 ```
 
 ## Usage

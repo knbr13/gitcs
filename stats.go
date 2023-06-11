@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
 	"log"
 	"sort"
 	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
 const outOfRange = 99999
@@ -256,6 +257,9 @@ func printCells(cols map[int]column) {
 			if col, ok := cols[i]; ok {
 				//special case today
 				if i == 0 && j == calcOffset()-1 {
+					if len(col) >= j {
+						continue
+					}
 					printCell(col[j], true)
 					continue
 				} else {

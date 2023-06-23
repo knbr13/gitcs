@@ -9,6 +9,15 @@ import (
 	"strings"
 )
 
+func getInputFromUser() (string, string) {
+	reader := bufio.NewReader(os.Stdin)
+
+	email := getEmailFromUser(reader)
+	folder := getFolderFromUser(reader)
+
+	return email, folder
+}
+
 func getEmailFromUser(reader *bufio.Reader) string {
 	for {
 		fmt.Print("Enter your email address: ")

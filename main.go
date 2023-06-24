@@ -1,14 +1,15 @@
 package main
 
 import (
-	"os"
 	"github.com/briandowns/spinner"
+	"os"
 	"time"
 )
 
 func main() {
 	email, folder := getInputFromUser()
-	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond) 
+
+	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 	s.Color("red", "bold")
 	s.FinalMSG = "Done!"
 	s.Start()
@@ -17,7 +18,6 @@ func main() {
 		scan(folder)
 	}
 
-	
 	stats(email)
 
 	s.Stop()

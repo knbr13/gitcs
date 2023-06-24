@@ -15,9 +15,9 @@ func deleteFile(fileName, filePath string) error {
 	return nil
 }
 
-func createFileIfNotExist(fileName string, homeDir string) error {
+func createFileIfNotExist(fileName string, dir string) error {
 
-	filePath := filepath.Join(homeDir, fileName)
+	filePath := filepath.Join(dir, fileName)
 
 	// Check if the file exists
 	_, err := os.Stat(filePath)

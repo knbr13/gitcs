@@ -97,7 +97,13 @@ func dumpStringsSliceToFile(lines []string, filePath string) error {
 
 // scan scans a new folder for Git repositories
 func scan(folder string) {
-	err := createFileIfNotExist(".gogitlocalstats")
+	// Get the user's home directory
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = createFileIfNotExist(".gogitlocalstats", homeDir)
 	if err != nil {
 		log.Fatal(err)
 	}

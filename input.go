@@ -20,7 +20,7 @@ func getInputFromUser() (string, string) {
 
 func getEmailFromUser(reader *bufio.Reader) string {
 	for {
-		fmt.Print("Enter your email address: ")
+		fmt.Print("Enter your Git email address: ")
 		email, err := reader.ReadString('\n')
 		if err != nil {
 			log.Fatal(err)

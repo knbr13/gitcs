@@ -15,17 +15,12 @@ func deleteFile(fileName, filePath string) error {
 	return nil
 }
 
-func createFileIfNotExist(fileName string) error {
-	// Get the user's home directory
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home directory: %s", err)
-	}
+func createFileIfNotExist(fileName string, homeDir string) error {
 
 	filePath := filepath.Join(homeDir, fileName)
 
 	// Check if the file exists
-	_, err = os.Stat(filePath)
+	_, err := os.Stat(filePath)
 	if os.IsNotExist(err) {
 		// Create the file if it doesn't exist
 		_, err := os.Create(filePath)

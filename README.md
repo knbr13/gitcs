@@ -22,26 +22,24 @@ To install the `local-git-contributions-visualizer`, make sure you have Go insta
 
 ## Usage
 
-The local-git-contributions-visualizer tool offers the following options:
-
-1- add: Add a folder path to generate a graph based on the commits in that folder.
+1- Run the local-git-contributions-visualizer executable:
 
 ```bash
-./local-git-contributions-visualizer -add /path/to/repository
+./local-git-contributions-visualizer
 
 ```
 
-2- email: Add your Github email address to track contributions associated with it.
+2- Enter your Git email address when prompted:
 
 ```bash
-./local-git-contributions-visualizer -email your-email@example.com
+Enter your Git email address: your-email@example.com
 
 ```
 
-3- help: Display available options and usage instructions.
+3- Enter the folder path to scan for Git repositories:
 
 ```bash
-./local-git-contributions-visualizer -h
+Enter the folder path to scan for Git repositories: /path/to/repository
 ```
 
 License

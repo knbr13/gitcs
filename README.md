@@ -12,6 +12,25 @@ The `local-git-contributions-visualizer` is a command line tool written in Go. I
 - Visualize contributions from Github and Gitlab services
 - Works offline, making it convenient for use in remote or disconnected environments
 
+## Development
+
+1- To clone the `local-git-contributions-visualizer` repository, copy and paste the following URL:
+
+```bash
+  git clone https://github.com/abdullah-alaadine/local-git-contributions-visualizer.git
+```
+
+2- Run
+
+```bash
+  go run .
+```
+
+3- Build
+
+```bash
+  go build
+```
 ## Installation
 
 To install the `local-git-contributions-visualizer`, make sure you have Go installed on your machine. Then, run the following command:
@@ -42,7 +61,7 @@ Enter your Git email address: your-email@example.com
 Enter the folder path to scan for Git repositories: /path/to/repository
 ```
 
-License
+## License
 
 This project is licensed under the [MIT License](https://github.com/abdullah-alaadine/local-git-contributions-visualizer/blob/main/LICENSE). See the [LICENSE](https://github.com/abdullah-alaadine/local-git-contributions-visualizer/blob/main/LICENSE) file for details.
-```
+

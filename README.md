@@ -1,6 +1,6 @@
 # local-git-contributions-visualizer
 
-The `local-git-contributions-visualizer` is a command line tool written in Go. It allows developers to scan their local Git repositories and generate a visual contributions graph. This tool is particularly useful for developers who work with multiple Git services such as Github and Gitlab. It enables them to see their contributions across both platforms, even when there is no internet connection available.
+The `local-git-contributions-visualizer` is a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is particularly useful for developers who work with multiple Git services such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
 
 ## Screenshots
 
@@ -14,26 +14,26 @@ The `local-git-contributions-visualizer` is a command line tool written in Go. I
 
 ## Development
 
-1- To clone the `local-git-contributions-visualizer` repository, copy and paste the following URL:
+1- To clone the `local-git-contributions-visualizer` repository, copy and paste the following command:
 
 ```bash
   git clone https://github.com/abdullah-alaadine/local-git-contributions-visualizer.git
 ```
 
-2- Run
+2- To run the tool, execute the following command:
 
 ```bash
   go run .
 ```
 
-3- Build
+3- To build the tool, run the following command:
 
 ```bash
   go build
 ```
 ## Installation
 
-To install the `local-git-contributions-visualizer`, make sure you have Go installed on your machine. Then, run the following command:
+To install the local-git-contributions-visualizer, ensure that you have Go installed on your machine. Then, execute the following command:
 
 ```bash
   go install github.com/abdullah-alaadine/local-git-contributions-visualizer@latest

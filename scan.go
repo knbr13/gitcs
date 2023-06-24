@@ -108,25 +108,3 @@ func scan(folder string) {
 	filePath := getDotFilePath()
 	dumpStringsSliceToFile(repositories, filePath)
 }
-
-func createFileIfNotExist(fileName string) error {
-	// Get the user's home directory
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return fmt.Errorf("failed to get home directory: %s", err)
-	}
-
-	filePath := filepath.Join(homeDir, fileName)
-
-	// Check if the file exists
-	_, err = os.Stat(filePath)
-	if os.IsNotExist(err) {
-		// Create the file if it doesn't exist
-		_, err := os.Create(filePath)
-		if err != nil {
-			return fmt.Errorf("failed to create file: %s", err)
-		}
-	}
-
-	return nil
-}

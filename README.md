@@ -1,6 +1,6 @@
 # local-git-contributions-visualizer
 
-The `local-git-contributions-visualizer` is a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is particularly useful for developers who work with multiple Git services such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
+The `local-git-contributions-visualizer` is a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is particularly useful for developers who work with multiple Git services, such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
 
 ## Screenshots
 
@@ -8,9 +8,9 @@ The `local-git-contributions-visualizer` is a command-line tool written in Go th
 
 ## Features
 
-- Scan local Git repositories and generate a contributions graph
-- Visualize contributions from Github and Gitlab services
-- Works offline, making it convenient for use in remote or disconnected environments
+- Scan local Git repositories and generate a contributions graph.
+- Visualize contributions from Github and Gitlab services.
+- Works offline, making it convenient for use in remote or disconnected environments.
 
 ## Development
 
@@ -59,6 +59,14 @@ Enter your Git email address: your-email@example.com
 
 ```bash
 Enter the folder path to scan for Git repositories: /path/to/repository
+```
+
+## Hint
+
+You can use the following command: Perhaps you want to check the email used for git on your machine.
+
+```bash
+git config --global user.email
 ```
 
 ## License

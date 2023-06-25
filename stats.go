@@ -215,20 +215,20 @@ func buildCols(keys []int, commits map[int]int) map[int]column {
 func printCell(val int, today bool) {
 	var colorFunc color.Style
 	if today {
-		colorFunc = color.New(color.FgBlack, color.BgDarkGray)
+		colorFunc = color.New(color.FgBlack, color.BgRed)
 		colorFunc.Printf("%2d", val)
 	} else if val == 0 {
 		colorFunc = color.New(color.FgWhite, color.BgBlack)
 		colorFunc.Print(" - ")
 	} else {
 		if val < 10 {
-			colorFunc = color.New(color.FgRed, color.BgLightCyan)
+			colorFunc = color.New(color.FgBlack, color.BgLightCyan)
 		} else if val < 20 {
-			colorFunc = color.New(color.FgRed, color.BgHiCyan)
+			colorFunc = color.New(color.FgBlack, color.BgHiCyan)
 		} else if val < 30 {
-			colorFunc = color.New(color.FgRed, color.BgHiBlue)
+			colorFunc = color.New(color.FgBlack, color.BgHiBlue)
 		} else {
-			colorFunc = color.New(color.FgRed, color.BgBlue)
+			colorFunc = color.New(color.FgBlack, color.BgBlue)
 		}
 		colorFunc.Printf("%3d", val)
 	}

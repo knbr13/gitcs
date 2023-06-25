@@ -157,10 +157,10 @@ func buildCols(keys []int, commits map[int]int) map[int]column {
 	col := column{}
 
 	for _, k := range keys {
-		week := int(k / 7) //26,25...1
-		dayinweek := k % 7 // 0,1,2,3,4,5,6
+		week := int(k / 7) // 26, 25...1
+		dayinweek := k % 7 // 0, 1, 2, 3, 4, 5, 6
 
-		if dayinweek == 0 { //reset
+		if dayinweek == 0 { // reset
 			col = column{}
 		}
 
@@ -249,20 +249,26 @@ func printDayCol(day int) {
 func printCells(cols map[int]column) {
 	printMonths()
 	for j := 6; j >= 0; j-- {
-		for i := weeksInLastSixMonths + 1; i >= 0; i-- {
-			if i == weeksInLastSixMonths+1 {
+		for i := weeksInLastSixMonths; i >= 0; i-- {
+			if i == weeksInLastSixMonths {
 				printDayCol(j)
 			}
 			if col, ok := cols[i]; ok {
-				//special case today
+				// Special case today
 				if i == 0 && j == calcOffset()-1 {
-					printCell(col[j], true)
+					if j < len(col) {
+						printCell(col[j], true)
+					} else {
+						printCell(0, true)
+					}
 					continue
 				} else {
-					if len(col) > j {
+					if j < len(col) {
 						printCell(col[j], false)
-						continue
+					} else {
+						printCell(0, false)
 					}
+					continue
 				}
 			}
 			printCell(0, false)

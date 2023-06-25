@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/gookit/color"
 	"log"
 	"sort"
 	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/gookit/color"
+	"github.com/guptarohit/asciigraph"
 )
 
 const outOfRange = 99999
@@ -16,11 +18,24 @@ const weeksInLastSixMonths = 26
 
 type column []int
 
+var graphData []float64
+
 // stats calculates and prints the stats.
 func stats(email string) {
 	commits := processRepositories(email)
 	fmt.Println()
 	printCommitsStats(commits)
+	fmt.Println("																							")
+	printGraphCommits(graphData)
+}
+
+// printGraphCommits prints the commits graph
+func printGraphCommits(graphData []float64) {
+	data := graphData
+	graph := asciigraph.Plot(data, asciigraph.SeriesColors(
+		asciigraph.Blue,
+	))
+	fmt.Println(graph)
 }
 
 // printCommitsStats prints the commits stats
@@ -136,6 +151,23 @@ func processRepositories(email string) map[int]int {
 		commits = fillCommits(email, path, commits)
 	}
 
+	orders := make([]int, 0, len(commits))
+	for k := range commits {
+		orders = append(orders, k)
+	}
+
+	sort.Ints(orders)
+
+	for _, order := range orders {
+		if commits[order] > 0 {
+			graphData = append(graphData, float64(commits[order]))
+		}
+	}
+
+	// Reverse the array
+	for i, j := 0, len(graphData)-1; i < j; i, j = i+1, j-1 {
+		graphData[i], graphData[j] = graphData[j], graphData[i]
+	}
 	return commits
 }
 

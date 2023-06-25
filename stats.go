@@ -21,12 +21,15 @@ type column []int
 var graphData []float64
 
 // stats calculates and prints the stats.
-func stats(email string) {
+func stats(email string, statsType uint8) {
 	commits := processRepositories(email)
 	fmt.Println()
-	printCommitsStats(commits)
-	fmt.Println("																							")
-	printGraphCommits(graphData)
+	switch statsType {
+	case 1:
+		printCommitsStats(commits)
+	case 2:
+		printGraphCommits(graphData)
+	}
 }
 
 // printGraphCommits prints the commits graph

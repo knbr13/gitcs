@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/briandowns/spinner"
 	"os"
 	"time"
+
+	"github.com/briandowns/spinner"
 )
 
 func main() {
-	email, folder := getInputFromUser()
+	email, folder, statsType := getInputFromUser()
 
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 	s.Color("red", "bold")
@@ -18,7 +19,7 @@ func main() {
 		scan(folder)
 	}
 
-	stats(email)
+	stats(email, statsType)
 
 	s.Stop()
 	// There is no need to handle the errors, it is okay to keep the file in the home dir

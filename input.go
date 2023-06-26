@@ -9,13 +9,33 @@ import (
 	"strings"
 )
 
-func getInputFromUser() (string, string) {
+func getInputFromUser() (string, string, uint8) {
 	reader := bufio.NewReader(os.Stdin)
 
 	email := getEmailFromUser(reader)
 	folder := getFolderFromUser(reader)
+	statsType := getStatsType(reader)
 
-	return email, folder
+	return email, folder, statsType
+}
+
+func getStatsType(reader *bufio.Reader) uint8 {
+	var number uint8
+	for {
+		fmt.Print("Enter your stats type (1: Table --- 2: Graph): ")
+
+		_, err := fmt.Scanf("%d", &number)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if number == 1 || number == 2 {
+			return number
+		}
+
+		fmt.Println("Invalid stats type. Please try again.")
+	}
 }
 
 func getEmailFromUser(reader *bufio.Reader) string {

@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/gookit/color"
 	"log"
 	"sort"
 	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/gookit/color"
+	"github.com/guptarohit/asciigraph"
 )
 
 const outOfRange = 99999
@@ -16,11 +18,27 @@ const weeksInLastSixMonths = 26
 
 type column []int
 
+var graphData []float64
+
 // stats calculates and prints the stats.
-func stats(email string) {
+func stats(email string, statsType uint8) {
 	commits := processRepositories(email)
 	fmt.Println()
-	printCommitsStats(commits)
+	switch statsType {
+	case 1:
+		printCommitsStats(commits)
+	case 2:
+		printGraphCommits(graphData)
+	}
+}
+
+// printGraphCommits prints the commits graph
+func printGraphCommits(graphData []float64) {
+	data := graphData
+	graph := asciigraph.Plot(data, asciigraph.SeriesColors(
+		asciigraph.Blue,
+	))
+	fmt.Println(graph)
 }
 
 // printCommitsStats prints the commits stats
@@ -136,6 +154,23 @@ func processRepositories(email string) map[int]int {
 		commits = fillCommits(email, path, commits)
 	}
 
+	orders := make([]int, 0, len(commits))
+	for k := range commits {
+		orders = append(orders, k)
+	}
+
+	sort.Ints(orders)
+
+	for _, order := range orders {
+		if commits[order] > 0 {
+			graphData = append(graphData, float64(commits[order]))
+		}
+	}
+
+	// Reverse the array
+	for i, j := 0, len(graphData)-1; i < j; i, j = i+1, j-1 {
+		graphData[i], graphData[j] = graphData[j], graphData[i]
+	}
 	return commits
 }
 
@@ -180,20 +215,20 @@ func buildCols(keys []int, commits map[int]int) map[int]column {
 func printCell(val int, today bool) {
 	var colorFunc color.Style
 	if today {
-		colorFunc = color.New(color.FgBlack, color.BgDarkGray)
+		colorFunc = color.New(color.FgBlack, color.BgRed)
 		colorFunc.Printf("%2d", val)
 	} else if val == 0 {
 		colorFunc = color.New(color.FgWhite, color.BgBlack)
 		colorFunc.Print(" - ")
 	} else {
 		if val < 10 {
-			colorFunc = color.New(color.FgRed, color.BgLightCyan)
+			colorFunc = color.New(color.FgBlack, color.BgLightCyan)
 		} else if val < 20 {
-			colorFunc = color.New(color.FgRed, color.BgHiCyan)
+			colorFunc = color.New(color.FgBlack, color.BgHiCyan)
 		} else if val < 30 {
-			colorFunc = color.New(color.FgRed, color.BgHiBlue)
+			colorFunc = color.New(color.FgBlack, color.BgHiBlue)
 		} else {
-			colorFunc = color.New(color.FgRed, color.BgBlue)
+			colorFunc = color.New(color.FgBlack, color.BgBlue)
 		}
 		colorFunc.Printf("%3d", val)
 	}

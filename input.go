@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -24,14 +25,18 @@ func getStatsType(reader *bufio.Reader) uint8 {
 	for {
 		fmt.Print("Enter your stats type (1: Table --- 2: Graph): ")
 
-		_, err := fmt.Scanf("%d", &number)
-
+		input, err := reader.ReadString('\n')
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		if number == 1 || number == 2 {
-			return number
+		input = strings.TrimSpace(input)
+
+		if num, err := strconv.ParseUint(input, 10, 8); err == nil {
+			number = uint8(num)
+			if number == 1 || number == 2 {
+				return number
+			}
 		}
 
 		fmt.Println("Invalid stats type. Please try again.")

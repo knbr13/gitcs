@@ -35,9 +35,15 @@ func stats(email string, statsType uint8) {
 // printGraphCommits prints the commits graph
 func printGraphCommits(graphData []float64) {
 	data := graphData
-	graph := asciigraph.Plot(data, asciigraph.SeriesColors(
-		asciigraph.Blue,
-	))
+
+	options := []asciigraph.Option{
+		asciigraph.Width(60),
+		asciigraph.Height(20),
+		asciigraph.SeriesColors(asciigraph.Blue),
+	}
+
+	graph := asciigraph.Plot(data, options...)
+
 	fmt.Println(graph)
 }
 

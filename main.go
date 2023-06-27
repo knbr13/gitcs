@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"os"
 	"time"
 
@@ -8,6 +9,15 @@ import (
 )
 
 func main() {
+
+	var gui bool
+
+	flag.BoolVar(&gui, "gui", false, "show GUI")
+
+	if gui {
+		initGui()
+	}
+
 	email, folder, statsType := getInputFromUser()
 
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)

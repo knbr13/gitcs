@@ -14,19 +14,31 @@ The `local-git-contributions-visualizer` is a command-line tool written in Go th
 
 ## Development
 
-1- To clone the `local-git-contributions-visualizer` repository, copy and paste the following command:
+1- Download and install `tdm-gcc` compiler to run binaries of `fyne/v2` package using the following URL:
+
+```bash
+  https://jmeubank.github.io/tdm-gcc/articles/2021-05/10.3.0-release
+```
+
+2- To clone the `local-git-contributions-visualizer` repository, copy and paste the following command:
 
 ```bash
   git clone https://github.com/abdullah-alaadine/local-git-contributions-visualizer.git
 ```
 
-2- To run the tool, execute the following command:
+3- To run the tool, execute the following command:
 
 ```bash
   go run .
 ```
 
-3- To build the tool, run the following command:
+4- To run the GUI version of the tool, execute the following command:
+
+```bash
+  go run main.go --gui
+```
+
+5- To build the tool, run the following command:
 
 ```bash
   go build

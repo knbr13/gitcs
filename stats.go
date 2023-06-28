@@ -51,28 +51,30 @@ func printGraphCommits(graphData []float64) {
 func printCommitsStats(commits map[int]int) {
 	keys := sortMapIntoSlice(commits)
 	cols := buildCols(keys, commits)
+	fmt.Println()
 	printCells(cols)
+	fmt.Println()
 }
 
 // fillCommits given a repository found in `path`, gets the commits and
 // puts them in the `commits` map, returning it when completed
-func fillCommits(email string, path string, commits map[int]int) map[int]int {
+func fillCommits(email string, path string, commits map[int]int) (map[int]int, error) {
 	// instantiate a git repo object from path
 	repo, err := git.PlainOpen(path)
 	if err != nil {
-		return commits
+		return commits, fmt.Errorf("unable to open: %s", path)
 	}
 
 	// get the HEAD reference
 	ref, err := repo.Head()
 	if err != nil {
-		return commits
+		return commits, fmt.Errorf("unable to get the reference where HEAD is pointing to in: %s", path)
 	}
 
 	// get the commits history starting from HEAD
 	iterator, err := repo.Log(&git.LogOptions{From: ref.Hash()})
 	if err != nil {
-		return commits
+		return commits, fmt.Errorf("failed to get the commit history in: %s", path)
 	}
 
 	// iterate the commits
@@ -91,10 +93,10 @@ func fillCommits(email string, path string, commits map[int]int) map[int]int {
 		return nil
 	})
 	if err != nil {
-		return commits
+		return commits, fmt.Errorf("failed to process commits in: %s", path)
 	}
 
-	return commits
+	return commits, nil
 }
 
 // getBeginningOfDay given a time.Time calculates the start time of that day
@@ -160,7 +162,10 @@ func processRepositories(email string) map[int]int {
 	}
 
 	for _, path := range repos {
-		commits = fillCommits(email, path, commits)
+		commits, err = fillCommits(email, path, commits)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	orders := make([]int, 0, len(commits))

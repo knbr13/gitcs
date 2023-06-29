@@ -5,6 +5,11 @@ go 1.20
 require github.com/go-git/go-git/v5 v5.7.0
 
 require (
+	github.com/chzyer/readline v1.5.1 // indirect
+	github.com/manifoldco/promptui v0.9.0 // indirect
+)
+
+require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230518184743-7afd39499903 // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
@@ -29,7 +34,7 @@ require (
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778 // indirect
 	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/sys v0.9.0 // indirect
 	golang.org/x/term v0.8.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )

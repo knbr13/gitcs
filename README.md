@@ -68,6 +68,20 @@ You can use the following command: Perhaps you want to check the email used for 
 ```bash
 git config --global user.email
 ```
+## Contributions
+
+Contributions are welcome! If you would like to contribute to this project, please follow these steps:
+
+   1- Fork the repository.
+   
+   2- Create a new branch for your feature or bug fix.
+   
+   3- Make the necessary changes and commit them.
+   
+   4- Push your changes to your fork.
+   
+   5- Submit a pull request describing your changes.
+
 
 ## License
 

@@ -6,11 +6,12 @@ import (
 	"log"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
+
+	"github.com/manifoldco/promptui"
 )
 
-func getInputFromUser() (string, string, uint8) {
+func getInputFromUser() (string, string, string) {
 	reader := bufio.NewReader(os.Stdin)
 
 	email := getEmailFromUser(reader)
@@ -20,27 +21,21 @@ func getInputFromUser() (string, string, uint8) {
 	return email, folder, statsType
 }
 
-func getStatsType(reader *bufio.Reader) uint8 {
-	var number uint8
-	for {
-		fmt.Print("Enter your stats type (1: Table --- 2: Graph): ")
+func getStatsType(reader *bufio.Reader) string {
 
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		input = strings.TrimSpace(input)
-
-		if num, err := strconv.ParseUint(input, 10, 8); err == nil {
-			number = uint8(num)
-			if number == 1 || number == 2 {
-				return number
-			}
-		}
-
-		fmt.Println("Invalid stats type. Please try again.")
+	prompt := promptui.Select{
+		Label: "Select Stats type",
+		Items: []string{"Table", "Graph"},
 	}
+
+	_, result, err := prompt.Run()
+
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return ""
+	}
+
+	return result
 }
 
 func getEmailFromUser(reader *bufio.Reader) string {

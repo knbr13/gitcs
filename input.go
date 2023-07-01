@@ -17,10 +17,9 @@ func getInputFromUser() (string, string, string) {
 	reader := bufio.NewReader(os.Stdin)
 
 	email := ""
+	autoEmail := askForEmail(reader)
 
-	autoEmail := askForEmail()
-
-	if autoEmail == "y" {
+	if autoEmail {
 		email = getAutoEmailFromGit()
 	} else {
 		email = getEmailFromUser(reader)
@@ -49,20 +48,21 @@ func getStatsType(reader *bufio.Reader) string {
 	return result
 }
 
-func askForEmail() string {
-	prompt := promptui.Prompt{
-		Label:     "Do you want to get your local git email?",
-		IsConfirm: true,
+func askForEmail(reader *bufio.Reader) bool {
+	for {
+		fmt.Print("Do you want to get your local git email? (y/n): ")
+		result, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+		if strings.ToLower(strings.TrimSpace(result)) == "y" {
+			return true
+		}
+		if strings.ToLower(strings.TrimSpace(result)) == "n" {
+			return false
+		}
+		fmt.Println("Invalid input. Please try again.")
 	}
-
-	result, err := prompt.Run()
-
-	if err != nil {
-		return ""
-	}
-
-	return result
-
 }
 
 func getAutoEmailFromGit() string {

@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gookit/color"
 )
 
 func deleteFile(fileName, filePath string) error {
@@ -61,6 +63,6 @@ func getFolderFromUser(reader *bufio.Reader) string {
 			return folder
 		}
 
-		fmt.Println("Invalid folder path. Please try again.")
+		color.Red.Println("Invalid folder path. Please try again.")
 	}
 }

@@ -8,12 +8,14 @@ import (
 	"os/user"
 	"path/filepath"
 	"strings"
+
+	"github.com/gookit/color"
 )
 
 func getDotFilePath() string {
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(color.Red.Sprintf("Error: %v\n", err))
 	}
 
 	dotFile := usr.HomeDir + "/.gogitlocalstats"
@@ -25,7 +27,7 @@ func scanGitFolders(root string) ([]string, error) {
 	var gitFolders []string
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			fmt.Printf("Error accessing path %q: %v\n", path, err)
+			color.Red.Printf("Error accessing path %q: %v\n", path, err)
 			return nil
 		}
 
@@ -44,7 +46,7 @@ func scanGitFolders(root string) ([]string, error) {
 	})
 
 	if err != nil {
-		fmt.Printf("Error walking the path %q: %v\n", root, err)
+		color.Red.Printf("Error walking the path %q: %v\n", root, err)
 		return nil, err
 	} else {
 		return gitFolders, nil
@@ -100,16 +102,16 @@ func scan(folder string) {
 	// Get the user's home directory
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(color.Red.Sprintf("Error: %v\n", err))
 	}
 
 	err = createFileIfNotExist(".gogitlocalstats", homeDir)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(color.Red.Sprintf("Error: %v\n", err))
 	}
 	repositories, err := scanGitFolders(folder)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(color.Red.Sprintf("Error: %v\n", err))
 	}
 	filePath := getDotFilePath()
 	dumpStringsSliceToFile(repositories, filePath)

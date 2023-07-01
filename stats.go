@@ -152,7 +152,7 @@ func processRepositories(email string) map[int]int {
 	filePath := getDotFilePath()
 	repos, err := parseFileLinesToSlice(filePath)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(color.Red.Sprint(err))
 	}
 	daysInMap := daysInLastSixMonths
 
@@ -164,7 +164,7 @@ func processRepositories(email string) map[int]int {
 	for _, path := range repos {
 		commits, err = fillCommits(email, path, commits)
 		if err != nil {
-			fmt.Println(err)
+			color.Yellow.Println(err)
 		}
 	}
 

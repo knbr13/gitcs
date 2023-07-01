@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/gookit/color"
 	"github.com/manifoldco/promptui"
 )
 
@@ -41,7 +42,7 @@ func getStatsType(reader *bufio.Reader) string {
 	_, result, err := prompt.Run()
 
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
+		color.Red.Printf("Prompt failed %v\n", err)
 		return ""
 	}
 
@@ -55,13 +56,14 @@ func askForEmail(reader *bufio.Reader) bool {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if strings.ToLower(strings.TrimSpace(result)) == "y" {
+		result = strings.TrimSpace(result)
+		if strings.ToLower(result) == "y" {
 			return true
 		}
-		if strings.ToLower(strings.TrimSpace(result)) == "n" {
+		if strings.ToLower(result) == "n" {
 			return false
 		}
-		fmt.Println("Invalid input. Please try again.")
+		fmt.Println(color.Yellow.Sprint("Invalid input. Please try again."))
 	}
 }
 
@@ -73,7 +75,7 @@ func getAutoEmailFromGit() string {
 	}
 
 	email := strings.TrimSpace(bytes.NewBuffer(localEmail).String())
-	fmt.Println("Your git email is:", email)
+	fmt.Println("Your git email is:", color.Cyan.Sprint(email))
 	return email
 }
 
@@ -90,7 +92,7 @@ func getEmailFromUser(reader *bufio.Reader) string {
 			return email
 		}
 
-		fmt.Println("Invalid email address. Please try again.")
+		fmt.Println(color.Yellow.Sprint("Invalid email address. Please try again."))
 	}
 }
 

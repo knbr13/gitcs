@@ -50,7 +50,7 @@ func getStatsType(reader *bufio.Reader) string {
 
 func askForEmail(reader *bufio.Reader) bool {
 	for {
-		fmt.Print("Do you want to get your local git email? (y/n): ")
+		fmt.Print("Do you want to retrieve your global Git email address automatically? (y/n): ")
 		result, err := reader.ReadString('\n')
 		if err != nil {
 			log.Fatal(err)

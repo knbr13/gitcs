@@ -12,6 +12,7 @@ The `local-git-contributions-visualizer` is a command-line tool written in Go th
 - Scan local Git repositories and generate a contributions graph.
 - Visualize contributions from Github and Gitlab services.
 - Works offline, making it convenient for use in remote or disconnected environments.
+- Cross-platform support: Works well on Git Bash, CMD, Power Shell, etc.
 
 ## Development
 

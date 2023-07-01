@@ -2,9 +2,11 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 
@@ -14,7 +16,15 @@ import (
 func getInputFromUser() (string, string, string) {
 	reader := bufio.NewReader(os.Stdin)
 
-	email := getEmailFromUser(reader)
+	email := ""
+	autoEmail := askForEmail(reader)
+
+	if autoEmail {
+		email = getAutoEmailFromGit()
+	} else {
+		email = getEmailFromUser(reader)
+	}
+
 	folder := getFolderFromUser(reader)
 	statsType := getStatsType(reader)
 
@@ -36,6 +46,35 @@ func getStatsType(reader *bufio.Reader) string {
 	}
 
 	return result
+}
+
+func askForEmail(reader *bufio.Reader) bool {
+	for {
+		fmt.Print("Do you want to retrieve your global Git email address automatically? (y/n): ")
+		result, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+		if strings.ToLower(strings.TrimSpace(result)) == "y" {
+			return true
+		}
+		if strings.ToLower(strings.TrimSpace(result)) == "n" {
+			return false
+		}
+		fmt.Println("Invalid input. Please try again.")
+	}
+}
+
+func getAutoEmailFromGit() string {
+	localEmail, err := exec.Command("git", "config", "--global", "user.email").Output()
+	if err != nil {
+		log.Fatal(err)
+		return ""
+	}
+
+	email := strings.TrimSpace(bytes.NewBuffer(localEmail).String())
+	fmt.Println("Your git email is:", email)
+	return email
 }
 
 func getEmailFromUser(reader *bufio.Reader) string {

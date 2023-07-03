@@ -39,6 +39,7 @@ func printGraphCommits(graphData []float64) {
 	options := []asciigraph.Option{
 		asciigraph.Width(60),
 		asciigraph.Height(20),
+		asciigraph.Precision(0),
 		asciigraph.SeriesColors(asciigraph.Blue),
 	}
 

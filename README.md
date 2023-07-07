@@ -1,11 +1,11 @@
-# local-git-contributions-visualizer
+# git-commits-visualizer
 
-The `local-git-contributions-visualizer` is a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is particularly useful for developers who work with multiple Git services, such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
+The `git-commits-visualizer` is a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is particularly useful for developers who work with multiple Git services, such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
 
 ## Screenshots
 
-![git-local-contributions-visualizer](https://raw.githubusercontent.com/abdullah-alaadine/local-git-contributions-visualizer/main/assets/screenshot3.png)
-![git-local-contributions-visualizer](https://raw.githubusercontent.com/abdullah-alaadine/local-git-contributions-visualizer/main/assets/screenshot4.png)
+![git-commits-visualizer](https://raw.githubusercontent.com/abdullah-alaadine/git-commits-visualizer/main/assets/screenshot3.png)
+![git-commits-visualizer](https://raw.githubusercontent.com/abdullah-alaadine/git-commits-visualizer/main/assets/screenshot4.png)
 
 ## Features
 
@@ -16,10 +16,10 @@ The `local-git-contributions-visualizer` is a command-line tool written in Go th
 
 ## Development
 
-1- To clone the `local-git-contributions-visualizer` repository, copy and paste the following command:
+1- To clone the `git-commits-visualizer` repository, copy and paste the following command:
 
 ```bash
-  git clone https://github.com/abdullah-alaadine/local-git-contributions-visualizer.git
+  git clone https://github.com/abdullah-alaadine/git-commits-visualizer.git
 ```
 
 2- To run the tool, execute the following command:
@@ -35,18 +35,18 @@ The `local-git-contributions-visualizer` is a command-line tool written in Go th
 ```
 ## Installation
 
-To install the local-git-contributions-visualizer, ensure that you have Go installed on your machine. Then, execute the following command:
+To install the git-commits-visualizer, ensure that you have Go installed on your machine. Then, execute the following command:
 
 ```bash
-  go install github.com/abdullah-alaadine/local-git-contributions-visualizer@latest
+  go install github.com/abdullah-alaadine/git-commits-visualizer@latest
 ```
 
 ## Usage
 
-1- Run the local-git-contributions-visualizer executable:
+1- Run the git-commits-visualizer executable:
 
 ```bash
-./local-git-contributions-visualizer
+./git-commits-visualizer
 
 ```
 
@@ -87,5 +87,5 @@ Contributions are welcome! If you would like to contribute to this project, plea
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/abdullah-alaadine/local-git-contributions-visualizer/blob/main/LICENSE). See the [LICENSE](https://github.com/abdullah-alaadine/local-git-contributions-visualizer/blob/main/LICENSE) file for details.
+This project is licensed under the [MIT License](https://github.com/abdullah-alaadine/git-commits-visualizer/blob/main/LICENSE). See the [LICENSE](https://github.com/abdullah-alaadine/git-commits-visualizer/blob/main/LICENSE) file for details.
 

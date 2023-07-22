@@ -16,51 +16,39 @@ The `git-commits-visualizer` is a command-line tool written in Go that enables d
 
 ## Development
 
-1- To clone the `git-commits-visualizer` repository, copy and paste the following command:
+1- Clone the `git-commits-visualizer` repository, copy and paste the following command:
 
 ```bash
-  git clone https://github.com/abdullah-alaadine/git-commits-visualizer.git
+  git clone https://github.com/abdullah-alaadine/git-commits-visualizer.git # using HTTPS
+
+  OR
+
+  git clone git@github.com:abdullah-alaadine/git-commits-visualizer.git # using SSH
+
+  OR
+
+  gh repo clone abdullah-alaadine/git-commits-visualizer # using GitHub CLI
 ```
 
-2- To run the tool, execute the following command:
-
-```bash
-  go run .
-```
-
-3- To build the tool, run the following command:
+2- Build the tool:
 
 ```bash
   go build
 ```
+
+3- Run the executable file:
+
+```bash
+  .\<executable_file_name>.exe # Windows OS
+  ./<executable_file_name>     # Linux OS || Mac OS
+```
+
 ## Installation
 
 To install the git-commits-visualizer, ensure that you have Go installed on your machine. Then, execute the following command:
 
 ```bash
   go install github.com/abdullah-alaadine/git-commits-visualizer@latest
-```
-
-## Usage
-
-1- Run the git-commits-visualizer executable:
-
-```bash
-./git-commits-visualizer
-
-```
-
-2- Enter your Git email address when prompted:
-
-```bash
-Enter your Git email address: your-email@example.com
-
-```
-
-3- Enter the folder path to scan for Git repositories:
-
-```bash
-Enter the folder path to scan for Git repositories: /path/to/repository
 ```
 
 ## Hint
@@ -70,22 +58,21 @@ You can use the following command: Perhaps you want to check the email used for 
 ```bash
 git config --global user.email
 ```
+
 ## Contributions
 
 Contributions are welcome! If you would like to contribute to this project, please follow these steps:
 
-   1- Fork the repository.
-   
-   2- Create a new branch for your feature or bug fix.
-   
-   3- Make the necessary changes and commit them.
-   
-   4- Push your changes to your fork.
-   
-   5- Submit a pull request describing your changes.
+1- Fork the repository.
 
+2- Create a new branch for your feature or bug fix.
+
+3- Make the necessary changes and commit them.
+
+4- Push your changes to your fork.
+
+5- Submit a pull request describing your changes.
 
 ## License
 
 This project is licensed under the [MIT License](https://github.com/abdullah-alaadine/git-commits-visualizer/blob/main/LICENSE). See the [LICENSE](https://github.com/abdullah-alaadine/git-commits-visualizer/blob/main/LICENSE) file for details.
-

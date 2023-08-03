@@ -44,7 +44,7 @@ The `git-commits-visualizer` is a command-line tool written in Go that enables d
 
 ## Installation
 
-To install the git-commits-visualizer, ensure that you have Go installed on your machine. Then, execute the following command:
+To install this tool, ensure that you have Go installed on your machine. Then, execute the following command:
 
 ```bash
   go install github.com/abdullah-alaadine/git-commits-visualizer@latest

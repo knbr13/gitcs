@@ -2,12 +2,12 @@ module github.com/abdullah-alaadine/git-commits-visualizer
 
 go 1.20
 
-require github.com/go-git/go-git/v5 v5.7.0
-
 require (
-	github.com/chzyer/readline v1.5.1 // indirect
-	github.com/manifoldco/promptui v0.9.0 // indirect
+	github.com/go-git/go-git/v5 v5.7.0
+	github.com/manifoldco/promptui v0.9.0
 )
+
+require github.com/chzyer/readline v1.5.1 // indirect
 
 require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect

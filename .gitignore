@@ -2,10 +2,10 @@
 *.exe
 *.o
 *.out
-
 *.app
-
 *.elf
+
+git-commits-visualizer
 
 /bin
 

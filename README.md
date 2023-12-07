@@ -4,7 +4,7 @@ The `git-commits-visualizer` is a command-line tool written in Go that enables d
 
 ## Screenshots
 
-![git-commits-visualizer](https://github.com/abdullah-alaadine/git-commits-visualizer/blob/main/git-commit-visualizer.png)
+![git-commits-visualizer](./git-commits-visualizer.jpg)
 
 ## Features
 

@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"sort"
 	"time"
 
@@ -21,8 +20,8 @@ type column []int
 var graphData []float64
 
 // stats calculates and prints the stats.
-func stats(email string, statsType string) {
-	commits := processRepositories(email)
+func stats(email string, statsType string, repos []string) {
+	commits := processRepositories(email, repos)
 	fmt.Println()
 	switch statsType {
 	case "Table":
@@ -149,12 +148,7 @@ func calcOffset() int {
 
 // processRepositories given a user email, returns the
 // commits made in the last 6 months
-func processRepositories(email string) map[int]int {
-	filePath := getDotFilePath()
-	repos, err := parseFileLinesToSlice(filePath)
-	if err != nil {
-		log.Fatal(color.Red.Sprint(err))
-	}
+func processRepositories(email string, repos []string) map[int]int {
 	daysInMap := daysInLastSixMonths
 
 	commits := make(map[int]int, daysInMap)
@@ -162,6 +156,7 @@ func processRepositories(email string) map[int]int {
 		commits[i] = 0
 	}
 
+	var err error
 	for _, path := range repos {
 		commits, err = fillCommits(email, path, commits)
 		if err != nil {
@@ -208,7 +203,7 @@ func buildCols(keys []int, commits map[int]int) map[int]column {
 	col := column{}
 
 	for _, k := range keys {
-		week := int(k / 7) // 26, 25...1
+		week := k / 7      // 26, 25...1
 		dayinweek := k % 7 // 0, 1, 2, 3, 4, 5, 6
 
 		if dayinweek == 0 { // reset
@@ -231,7 +226,7 @@ func printCell(val int, today bool) {
 	var colorFunc color.Style
 	if today {
 		colorFunc = color.New(color.FgBlack, color.BgRed)
-		colorFunc.Printf("%2d", val)
+		colorFunc.Printf("%3d", val)
 	} else if val == 0 {
 		colorFunc = color.New(color.FgWhite, color.BgBlack)
 		colorFunc.Print(" - ")

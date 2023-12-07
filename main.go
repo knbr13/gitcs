@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -15,16 +14,9 @@ func main() {
 	s.FinalMSG = "Done!"
 	s.Start()
 
-	if folder != "" {
-		scan(folder)
-	}
+	repos := scan(folder)
 
-	stats(email, statsType)
+	stats(email, statsType, repos)
 
 	s.Stop()
-	// There is no need to handle the errors, it is okay to keep the file in the home dir
-	homeDir, err := os.UserHomeDir()
-	if err == nil {
-		deleteFile(".gogitlocalstats", homeDir)
-	}
 }

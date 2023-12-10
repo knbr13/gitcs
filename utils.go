@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strings"
 	"time"
@@ -52,4 +53,14 @@ func daysAgo(t time.Time) int {
 		return hours / 24
 	}
 	return hours/24 + 1
+}
+
+func getMaxValue(m map[int]int) int {
+	max := math.MinInt
+	for _, v := range m {
+		if v > max {
+			max = v
+		}
+	}
+	return max
 }

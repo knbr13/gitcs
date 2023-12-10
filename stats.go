@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"sort"
 	"time"
 
@@ -11,7 +12,9 @@ import (
 	"github.com/guptarohit/asciigraph"
 )
 
-const outOfRange = 99999
+var sixMonthsAgo time.Time = time.Now().AddDate(0, -6, 0)
+var daysAgoFromSixMonths int = daysAgo(sixMonthsAgo)
+
 const daysInLastSixMonths = 183
 const weeksInLastSixMonths = 26
 
@@ -21,7 +24,10 @@ var graphData []float64
 
 // stats calculates and prints the stats.
 func stats(email string, statsType string, repos []string) {
-	commits := processRepositories(email, repos)
+	commits, err := processRepos(repos, email)
+	if err != nil {
+		log.Fatal(err)
+	}
 	fmt.Println()
 	switch statsType {
 	case "Table":
@@ -58,45 +64,39 @@ func printCommitsStats(commits map[int]int) {
 
 // fillCommits given a repository found in `path`, gets the commits and
 // puts them in the `commits` map, returning it when completed
-func fillCommits(email string, path string, commits map[int]int) (map[int]int, error) {
-	// instantiate a git repo object from path
+func fillCommits(path, email string, commits map[int]int) error {
 	repo, err := git.PlainOpen(path)
 	if err != nil {
-		return commits, fmt.Errorf("unable to open: %s", path)
+		return err
 	}
 
-	// get the HEAD reference
-	ref, err := repo.Head()
+	commitIterator, err := repo.Log(&git.LogOptions{Since: &sixMonthsAgo})
 	if err != nil {
-		return commits, fmt.Errorf("unable to get the reference where HEAD is pointing to in: %s", path)
+		return err
 	}
 
-	// get the commits history starting from HEAD
-	iterator, err := repo.Log(&git.LogOptions{From: ref.Hash()})
-	if err != nil {
-		return commits, fmt.Errorf("failed to get the commit history in: %s", path)
-	}
-
-	// iterate the commits
-	offset := calcOffset()
-	err = iterator.ForEach(func(c *object.Commit) error {
-		daysAgo := countDaysSinceDate(c.Author.When) + offset
-
+	err = commitIterator.ForEach(func(c *object.Commit) error {
 		if c.Author.Email != email {
 			return nil
 		}
 
-		if daysAgo != outOfRange {
-			commits[daysAgo]++
-		}
-
+		days := daysAgo(c.Author.When)
+		commits[days]++
 		return nil
 	})
 	if err != nil {
-		return commits, fmt.Errorf("failed to process commits in: %s", path)
+		return err
 	}
-
-	return commits, nil
+	for i := time.Now(); i.After(sixMonthsAgo); i = i.AddDate(0, 0, -1) {
+		days := daysAgo(i)
+		if _, ok := commits[days]; !ok {
+			commits[days] = 0
+		}
+	}
+	for i := daysAgoFromSixMonths; i < daysAgoFromSixMonths+calcOffset()-1; i++ {
+		commits[i] = 0
+	}
+	return nil
 }
 
 // getBeginningOfDay given a time.Time calculates the start time of that day
@@ -104,20 +104,6 @@ func getBeginningOfDay(t time.Time) time.Time {
 	year, month, day := t.Date()
 	startOfDay := time.Date(year, month, day, 0, 0, 0, 0, t.Location())
 	return startOfDay
-}
-
-// countDaysSinceDate counts how many days passed since the passed `date`
-func countDaysSinceDate(date time.Time) int {
-	days := 0
-	now := getBeginningOfDay(time.Now())
-	for date.Before(now) {
-		date = date.Add(time.Hour * 24)
-		days++
-		if days > daysInLastSixMonths {
-			return outOfRange
-		}
-	}
-	return days
 }
 
 // calcOffset determines and returns the amount of days missing to fill
@@ -145,40 +131,16 @@ func calcOffset() int {
 
 // processRepositories given a user email, returns the
 // commits made in the last 6 months
-func processRepositories(email string, repos []string) map[int]int {
-	daysInMap := daysInLastSixMonths
-
-	commits := make(map[int]int, daysInMap)
-	for i := daysInMap; i > 0; i-- {
-		commits[i] = 0
-	}
-
+func processRepos(repos []string, email string) (map[int]int, error) {
+	m := map[int]int{}
 	var err error
-	for _, path := range repos {
-		commits, err = fillCommits(email, path, commits)
+	for _, repo := range repos {
+		err = fillCommits(repo, email, m)
 		if err != nil {
-			color.Yellow.Println(err)
+			return nil, err
 		}
 	}
-
-	orders := make([]int, 0, len(commits))
-	for k := range commits {
-		orders = append(orders, k)
-	}
-
-	sort.Ints(orders)
-
-	for _, order := range orders {
-		if commits[order] > 0 {
-			graphData = append(graphData, float64(commits[order]))
-		}
-	}
-
-	// Reverse the array
-	for i, j := 0, len(graphData)-1; i < j; i, j = i+1, j-1 {
-		graphData[i], graphData[j] = graphData[j], graphData[i]
-	}
-	return commits
+	return m, nil
 }
 
 // sortMapIntoSlice returns a slice of indexes of a map, ordered

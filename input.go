@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -55,7 +54,7 @@ func getAutoEmailFromGit() string {
 		return ""
 	}
 
-	email := strings.TrimSpace(bytes.NewBuffer(localEmail).String())
+	email := strings.TrimSpace(string(localEmail))
 	fmt.Println("Your git email is:", color.Cyan.Sprint(email))
 	return email
 }

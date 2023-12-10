@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"sort"
 	"time"
 
 	"github.com/go-git/go-git/v5"
@@ -14,11 +13,6 @@ import (
 
 var sixMonthsAgo time.Time = time.Now().AddDate(0, -6, 0)
 var daysAgoFromSixMonths int = daysAgo(sixMonthsAgo)
-
-const daysInLastSixMonths = 183
-const weeksInLastSixMonths = 26
-
-type column []int
 
 var graphData []float64
 
@@ -90,13 +84,6 @@ func fillCommits(path, email string, commits map[int]int) error {
 	return nil
 }
 
-// getBeginningOfDay given a time.Time calculates the start time of that day
-func getBeginningOfDay(t time.Time) time.Time {
-	year, month, day := t.Date()
-	startOfDay := time.Date(year, month, day, 0, 0, 0, 0, t.Location())
-	return startOfDay
-}
-
 // calcOffset determines and returns the amount of days missing to fill
 // the last row of the stats graph
 func calcOffset() int {
@@ -132,42 +119,6 @@ func processRepos(repos []string, email string) (map[int]int, error) {
 		}
 	}
 	return m, nil
-}
-
-// sortMapIntoSlice returns a slice of indexes of a map, ordered
-func sortMapIntoSlice(m map[int]int) []int {
-	// order map
-	// To store the keys in slice in sorted order
-	var keys []int
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Ints(keys)
-
-	return keys
-}
-
-// buildCols generates a map with rows and columns ready to be printed to screen
-func buildCols(keys []int, commits map[int]int) map[int]column {
-	cols := make(map[int]column)
-	col := column{}
-
-	for _, k := range keys {
-		week := k / 7      // 26, 25...1
-		dayinweek := k % 7 // 0, 1, 2, 3, 4, 5, 6
-
-		if dayinweek == 0 { // reset
-			col = column{}
-		}
-
-		col = append(col, commits[k])
-
-		if dayinweek == 6 {
-			cols[week] = col
-		}
-	}
-
-	return cols
 }
 
 // printCell given a cell value prints it with a different format

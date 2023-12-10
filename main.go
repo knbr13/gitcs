@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	email, folder, statsType := getInputFromUser()
+	email, folder := getInputFromUser()
 
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 	s.Color("red", "bold")
@@ -16,7 +16,7 @@ func main() {
 
 	repos := scan(folder)
 
-	stats(email, statsType, repos)
+	stats(email, repos)
 
 	s.Stop()
 }

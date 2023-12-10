@@ -15,3 +15,15 @@ func buildHeader(start, end time.Time) string {
 	}
 	return s.String()
 }
+
+func getDay(i int) string {
+	switch i {
+	case 1:
+		return "Mon"
+	case 3:
+		return "Wed"
+	case 5:
+		return "Fri"
+	}
+	return strings.Repeat(" ", 3)
+}

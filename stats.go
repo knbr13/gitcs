@@ -31,7 +31,7 @@ func stats(email string, statsType string, repos []string) {
 	fmt.Println()
 	switch statsType {
 	case "Table":
-		printCommitsStats(commits)
+		printTable(commits)
 	case "Graph":
 		printGraphCommits(graphData)
 	}
@@ -51,15 +51,6 @@ func printGraphCommits(graphData []float64) {
 	graph := asciigraph.Plot(data, options...)
 
 	fmt.Println(graph)
-}
-
-// printCommitsStats prints the commits stats
-func printCommitsStats(commits map[int]int) {
-	keys := sortMapIntoSlice(commits)
-	cols := buildCols(keys, commits)
-	fmt.Println()
-	printCells(cols)
-	fmt.Println()
 }
 
 // fillCommits given a repository found in `path`, gets the commits and
@@ -181,95 +172,20 @@ func buildCols(keys []int, commits map[int]int) map[int]column {
 
 // printCell given a cell value prints it with a different format
 // based on the value amount, and on the `today` flag.
-func printCell(val int, today bool) {
+func printCell(val, maxValue int) string {
 	var colorFunc color.Style
-	if today {
-		colorFunc = color.New(color.FgBlack, color.BgRed)
-		colorFunc.Printf("%3d", val)
-	} else if val == 0 {
+	if val == 0 {
 		colorFunc = color.New(color.FgWhite, color.BgBlack)
-		colorFunc.Print(" - ")
+		return colorFunc.Sprintf("  - ")
+	}
+	if val <= maxValue/8 {
+		colorFunc = color.New(color.FgBlack, color.BgLightCyan)
+	} else if val <= maxValue/4 {
+		colorFunc = color.New(color.FgBlack, color.BgHiCyan)
+	} else if val < maxValue/2 {
+		colorFunc = color.New(color.FgBlack, color.BgHiBlue)
 	} else {
-		if val < 10 {
-			colorFunc = color.New(color.FgBlack, color.BgLightCyan)
-		} else if val < 20 {
-			colorFunc = color.New(color.FgBlack, color.BgHiCyan)
-		} else if val < 30 {
-			colorFunc = color.New(color.FgBlack, color.BgHiBlue)
-		} else {
-			colorFunc = color.New(color.FgBlack, color.BgBlue)
-		}
-		colorFunc.Printf("%3d", val)
+		colorFunc = color.New(color.FgBlack, color.BgBlue)
 	}
-	colorFunc.Print(" ")
-}
-
-// printMonths prints the month names in the first line, determining when the month
-// changed between switching weeks
-func printMonths() {
-	week := getBeginningOfDay(time.Now()).Add(-(daysInLastSixMonths * time.Hour * 24))
-	month := week.Month()
-	fmt.Printf("         ")
-	for {
-		if week.Month() != month {
-			fmt.Printf("%s ", week.Month().String()[:3])
-			month = week.Month()
-		} else {
-			fmt.Printf("    ")
-		}
-
-		week = week.Add(7 * time.Hour * 24)
-		if week.After(time.Now()) {
-			break
-		}
-	}
-	fmt.Printf("\n")
-}
-
-// printDayCol given the day number (0 is Sunday) prints the day name,
-// alternating the rows (prints just 2,4,6)
-func printDayCol(day int) {
-	out := "     "
-	switch day {
-	case 1:
-		out = " Mon "
-	case 3:
-		out = " Wed "
-	case 5:
-		out = " Fri "
-	}
-
-	fmt.Print(out)
-}
-
-// printCells prints the cells of the graph
-func printCells(cols map[int]column) {
-	printMonths()
-	for j := 6; j >= 0; j-- {
-		for i := weeksInLastSixMonths; i >= 0; i-- {
-			if i == weeksInLastSixMonths {
-				printDayCol(j)
-			}
-			if col, ok := cols[i]; ok {
-				// Special case today
-				if i == 0 && j == calcOffset()-1 {
-					if j < len(col) {
-						printCell(col[j], true)
-					} else {
-						printCell(0, true)
-					}
-					continue
-				} else {
-					if j < len(col) {
-						printCell(col[j], false)
-					} else {
-						printCell(0, false)
-					}
-					continue
-				}
-			}
-			printCell(0, false)
-		}
-		fmt.Printf("\n")
-	}
+	return colorFunc.Sprintf(" %2d ", val)
 }

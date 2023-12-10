@@ -123,27 +123,24 @@ func countDaysSinceDate(date time.Time) int {
 // calcOffset determines and returns the amount of days missing to fill
 // the last row of the stats graph
 func calcOffset() int {
-	var offset int
-	weekday := time.Now().Weekday()
-
-	switch weekday {
+	now := time.Now()
+	switch now.Weekday() {
 	case time.Sunday:
-		offset = 7
+		return 0
 	case time.Monday:
-		offset = 6
+		return 1
 	case time.Tuesday:
-		offset = 5
+		return 2
 	case time.Wednesday:
-		offset = 4
+		return 3
 	case time.Thursday:
-		offset = 3
+		return 4
 	case time.Friday:
-		offset = 2
+		return 5
 	case time.Saturday:
-		offset = 1
+		return 6
 	}
-
-	return offset
+	panic("unhandled time")
 }
 
 // processRepositories given a user email, returns the

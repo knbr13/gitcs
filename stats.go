@@ -8,43 +8,19 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/gookit/color"
-	"github.com/guptarohit/asciigraph"
 )
 
 var sixMonthsAgo time.Time = time.Now().AddDate(0, -6, 0)
 var daysAgoFromSixMonths int = daysAgo(sixMonthsAgo)
 
-var graphData []float64
-
 // stats calculates and prints the stats.
-func stats(email string, statsType string, repos []string) {
+func stats(email string, repos []string) {
 	commits, err := processRepos(repos, email)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println()
-	switch statsType {
-	case "Table":
-		printTable(commits)
-	case "Graph":
-		printGraphCommits(graphData)
-	}
-}
-
-// printGraphCommits prints the commits graph
-func printGraphCommits(graphData []float64) {
-	data := graphData
-
-	options := []asciigraph.Option{
-		asciigraph.Width(60),
-		asciigraph.Height(20),
-		asciigraph.Precision(0),
-		asciigraph.SeriesColors(asciigraph.Blue),
-	}
-
-	graph := asciigraph.Plot(data, options...)
-
-	fmt.Println(graph)
+	printTable(commits)
 }
 
 // fillCommits given a repository found in `path`, gets the commits and

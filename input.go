@@ -11,10 +11,9 @@ import (
 	"strings"
 
 	"github.com/gookit/color"
-	"github.com/manifoldco/promptui"
 )
 
-func getInputFromUser() (string, string, string) {
+func getInputFromUser() (string, string) {
 	reader := bufio.NewReader(os.Stdin)
 
 	email := ""
@@ -27,26 +26,8 @@ func getInputFromUser() (string, string, string) {
 	}
 
 	folder := getFolderFromUser(reader)
-	statsType := getStatsType(reader)
 
-	return email, folder, statsType
-}
-
-func getStatsType(reader *bufio.Reader) string {
-
-	prompt := promptui.Select{
-		Label: "Select Stats type",
-		Items: []string{"Table", "Graph"},
-	}
-
-	_, result, err := prompt.Run()
-
-	if err != nil {
-		color.Red.Printf("Prompt failed %v\n", err)
-		return ""
-	}
-
-	return result
+	return email, folder
 }
 
 func askForEmail(reader *bufio.Reader) bool {

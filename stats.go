@@ -13,7 +13,6 @@ import (
 var sixMonthsAgo time.Time = time.Now().AddDate(0, -6, 0)
 var daysAgoFromSixMonths int = daysAgo(sixMonthsAgo)
 
-// stats calculates and prints the stats.
 func stats(email string, repos []string) {
 	commits, err := processRepos(repos, email)
 	if err != nil {
@@ -23,8 +22,6 @@ func stats(email string, repos []string) {
 	printTable(commits)
 }
 
-// fillCommits given a repository found in `path`, gets the commits and
-// puts them in the `commits` map, returning it when completed
 func fillCommits(path, email string, commits map[int]int) error {
 	repo, err := git.PlainOpen(path)
 	if err != nil {
@@ -60,8 +57,6 @@ func fillCommits(path, email string, commits map[int]int) error {
 	return nil
 }
 
-// calcOffset determines and returns the amount of days missing to fill
-// the last row of the stats graph
 func calcOffset() int {
 	now := time.Now()
 	switch now.Weekday() {
@@ -83,8 +78,6 @@ func calcOffset() int {
 	panic("unhandled time")
 }
 
-// processRepositories given a user email, returns the
-// commits made in the last 6 months
 func processRepos(repos []string, email string) (map[int]int, error) {
 	m := map[int]int{}
 	var err error
@@ -97,8 +90,6 @@ func processRepos(repos []string, email string) (map[int]int, error) {
 	return m, nil
 }
 
-// printCell given a cell value prints it with a different format
-// based on the value amount, and on the `today` flag.
 func printCell(val, maxValue int) string {
 	var colorFunc color.Style
 	if val == 0 {

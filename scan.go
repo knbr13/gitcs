@@ -38,7 +38,6 @@ func scanGitFolders(root string) ([]string, error) {
 	return gitFolders, nil
 }
 
-// scan scans a new folder for Git repositories
 func scan(folder string) []string {
 	repositories, err := scanGitFolders(folder)
 	if err != nil {

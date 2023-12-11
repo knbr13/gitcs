@@ -29,11 +29,11 @@ func getDay(i int) string {
 }
 
 func printTable(commits map[int]int) {
-	fmt.Printf("%s%s%s\n", sixEmptySpaces, sixEmptySpaces, buildHeader(sixMonthsAgo, time.Now()))
+	fmt.Printf("%s     %s\n", sixEmptySpaces, buildHeader(sixMonthsAgo, time.Now()))
 	s := strings.Builder{}
 	max := getMaxValue(commits)
 	for i := 0; i < 7; i++ {
-		s.WriteString(fmt.Sprintf("%-6s", getDay(i)))
+		s.WriteString(fmt.Sprintf("%-5s", getDay(i)))
 		for j := daysAgoFromSixMonths + calcOffset() - 1; j >= 0; j -= 7 {
 			s.WriteString(printCell(commits[j-i], max))
 		}

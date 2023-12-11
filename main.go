@@ -9,14 +9,14 @@ import (
 func main() {
 	email, folder := getInputFromUser()
 
-	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
+	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond, spinner.WithSuffix("  loading..."))
 	s.Color("red", "bold")
 	s.FinalMSG = "Done!"
-	s.Start()
+	func() {
+		s.Start()
+		defer s.Stop()
 
-	repos := scan(folder)
-
-	stats(email, repos)
-
-	s.Stop()
+		repos := scan(folder)
+		stats(email, repos)
+	}()
 }

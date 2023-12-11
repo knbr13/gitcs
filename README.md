@@ -1,45 +1,10 @@
 # git-commits-visualizer
 
-The `git-commits-visualizer` is a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is particularly useful for developers who work with multiple Git services, such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
+The `git-commits-visualizer` is a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is useful for developers who work with multiple Git services, such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
 
 ## Screenshots
 
 ![git-commits-visualizer](./git-commits-visualizer.jpg)
-
-## Features
-
-- Scan local Git repositories and generate a contributions graph.
-- Visualize contributions from Github and Gitlab services.
-- Works offline, making it convenient for use in remote or disconnected environments.
-
-## Development
-
-1- Clone the `git-commits-visualizer` repository, copy and paste the following command:
-
-```bash
-  git clone https://github.com/abdullah-alaadine/git-commits-visualizer.git # using HTTPS
-
-  OR
-
-  git clone git@github.com:abdullah-alaadine/git-commits-visualizer.git # using SSH
-
-  OR
-
-  gh repo clone abdullah-alaadine/git-commits-visualizer # using GitHub CLI
-```
-
-2- Build the tool:
-
-```bash
-  go build
-```
-
-3- Run the executable file:
-
-```bash
-  .\<executable_file_name>.exe # Windows OS
-  ./<executable_file_name>     # Linux OS || Mac OS
-```
 
 ## Installation
 
@@ -49,13 +14,7 @@ To install this tool, ensure that you have Go installed on your machine. Then, e
   go install github.com/abdullah-alaadine/git-commits-visualizer@latest
 ```
 
-## Hint
-
-You can use the following command: Perhaps you want to check the email used for git on your machine.
-
-```bash
-git config --global user.email
-```
+Or if you don't have Go installed, download the latest release found in this repository.
 
 ## Contributions
 

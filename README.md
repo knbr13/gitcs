@@ -1,17 +1,17 @@
-# git-commits-visualizer
+# gitcs
 
-The `git-commits-visualizer` is a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is useful for developers who work with multiple Git services, such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
+This is a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is useful for developers who work with multiple Git services, such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
 
 ## Screenshots
 
-![git-commits-visualizer](./git-commits-visualizer.jpg)
+![gitcs](./gitcs.jpg)
 
 ## Installation
 
 To install this tool, ensure that you have Go installed on your machine. Then, execute the following command:
 
 ```bash
-  go install github.com/abdullah-alaadine/git-commits-visualizer@latest
+  go install github.com/abdullah-alaadine/gitcs@latest
 ```
 
 Or if you don't have Go installed, download the latest release found in this repository.
@@ -32,4 +32,4 @@ Contributions are welcome! If you would like to contribute to this project, plea
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/abdullah-alaadine/git-commits-visualizer/blob/main/LICENSE). See the [LICENSE](https://github.com/abdullah-alaadine/git-commits-visualizer/blob/main/LICENSE) file for details.
+This project is licensed under the [MIT License](https://github.com/abdullah-alaadine/gitcs/blob/main/LICENSE). See the [LICENSE](https://github.com/abdullah-alaadine/gitcs/blob/main/LICENSE) file for details.

@@ -1,7 +1,7 @@
 # Makefile for building Go tool for different platforms and compressing binaries
 
 # Binary name
-BINARY_NAME=git-commits-vis
+BINARY_NAME=gitcs
 
 # Output directory
 OUTPUT_DIR=bin

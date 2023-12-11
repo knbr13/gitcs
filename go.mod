@@ -1,4 +1,4 @@
-module github.com/abdullah-alaadine/git-commits-visualizer
+module github.com/abdullah-alaadine/gitcs
 
 go 1.20
 

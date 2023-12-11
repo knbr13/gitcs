@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/gookit/color"
 )
 
 var sixEmptySpaces = strings.Repeat(" ", 6)
@@ -40,4 +42,22 @@ func printTable(commits map[int]int) {
 		fmt.Println(s.String())
 		s.Reset()
 	}
+}
+
+func printCell(val, maxValue int) string {
+	var colorFunc color.Style
+	if val == 0 {
+		colorFunc = color.New(color.FgWhite, color.BgBlack)
+		return colorFunc.Sprintf("  - ")
+	}
+	if val <= maxValue/8 {
+		colorFunc = color.New(color.FgBlack, color.BgLightCyan)
+	} else if val <= maxValue/4 {
+		colorFunc = color.New(color.FgBlack, color.BgHiCyan)
+	} else if val < maxValue/2 {
+		colorFunc = color.New(color.FgBlack, color.BgHiBlue)
+	} else {
+		colorFunc = color.New(color.FgBlack, color.BgBlue)
+	}
+	return colorFunc.Sprintf(" %2d ", val)
 }

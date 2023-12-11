@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/gookit/color"
 )
 
 var sixMonthsAgo time.Time = time.Now().AddDate(0, -6, 0)
@@ -88,22 +87,4 @@ func processRepos(repos []string, email string) (map[int]int, error) {
 		}
 	}
 	return m, nil
-}
-
-func printCell(val, maxValue int) string {
-	var colorFunc color.Style
-	if val == 0 {
-		colorFunc = color.New(color.FgWhite, color.BgBlack)
-		return colorFunc.Sprintf("  - ")
-	}
-	if val <= maxValue/8 {
-		colorFunc = color.New(color.FgBlack, color.BgLightCyan)
-	} else if val <= maxValue/4 {
-		colorFunc = color.New(color.FgBlack, color.BgHiCyan)
-	} else if val < maxValue/2 {
-		colorFunc = color.New(color.FgBlack, color.BgHiBlue)
-	} else {
-		colorFunc = color.New(color.FgBlack, color.BgBlue)
-	}
-	return colorFunc.Sprintf(" %2d ", val)
 }

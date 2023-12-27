@@ -1,6 +1,6 @@
 # gitcs
 
-This is a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is useful for developers who work with multiple Git services, such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
+Git Commits Visualizer, a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is useful for developers who work with multiple Git services, such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
 
 ## Screenshots
 

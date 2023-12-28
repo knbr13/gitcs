@@ -12,6 +12,8 @@ import (
 	"github.com/gookit/color"
 )
 
+type validator func(any) bool
+
 func getInputFromUser() (string, string) {
 	reader := bufio.NewReader(os.Stdin)
 

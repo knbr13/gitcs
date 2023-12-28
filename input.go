@@ -67,6 +67,6 @@ func getAutoEmailFromGit() string {
 		log.Fatal(err)
 	}
 
-	fmt.Print("Your git email is:", color.Cyan.Sprint(string(localEmail)))
+	fmt.Print("Your git email is: ", color.Cyan.Sprint(string(localEmail)))
 	return string(localEmail)
 }

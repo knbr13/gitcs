@@ -1,8 +1,8 @@
 package main
 
 import (
+	"io/fs"
 	"log"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -11,20 +11,20 @@ import (
 
 func scanGitFolders(root string) ([]string, error) {
 	var gitFolders []string
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			color.Red.Printf("Error accessing path %q: %v\n", path, err)
 			return err
 		}
 
-		if info.IsDir() && info.Name() == ".git" {
+		if d.IsDir() && d.Name() == ".git" {
 			gitFolder := filepath.Dir(path)
 			gitFolders = append(gitFolders, gitFolder)
 			return filepath.SkipDir // Skip further traversal within this directory
 		}
 
 		// Skip node_modules directories
-		if info.IsDir() && (strings.ToLower(info.Name()) == "node_modules" || strings.ToLower(info.Name()) == "vendor") {
+		if d.IsDir() && (strings.ToLower(d.Name()) == "node_modules" || strings.ToLower(d.Name()) == "vendor") {
 			return filepath.SkipDir
 		}
 

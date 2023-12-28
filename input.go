@@ -51,6 +51,7 @@ func getInputFromUser() (string, string) {
 			return err == nil
 		})
 	}
+	email = strings.ToLower(strings.TrimSpace(email))
 
 	folder := getUserInput(reader, "Enter the folder path to scan for Git repositories: ", func(s string) bool {
 		return isValidFolderPath(strings.ToLower(strings.TrimSpace(s)))
@@ -64,10 +65,8 @@ func getAutoEmailFromGit() string {
 	localEmail, err := exec.Command("git", "config", "--global", "user.email").Output()
 	if err != nil {
 		log.Fatal(err)
-		return ""
 	}
 
-	email := strings.TrimSpace(string(localEmail))
-	fmt.Println("Your git email is:", color.Cyan.Sprint(email))
-	return email
+	fmt.Print("Your git email is:", color.Cyan.Sprint(string(localEmail)))
+	return string(localEmail)
 }

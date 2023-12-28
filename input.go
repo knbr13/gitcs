@@ -12,7 +12,21 @@ import (
 	"github.com/gookit/color"
 )
 
-type validator func(any) bool
+type validator func(string) bool
+
+func getUserInput(reader *bufio.Reader, prompt string, fn validator) string {
+	for {
+		fmt.Print(prompt)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			log.Fatal(err)
+		}
+		if fn(input) {
+			return input
+		}
+		fmt.Println(color.Yellow.Sprint("Invalid input. Please try again!"))
+	}
+}
 
 func getInputFromUser() (string, string) {
 	reader := bufio.NewReader(os.Stdin)

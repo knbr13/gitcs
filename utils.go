@@ -1,15 +1,10 @@
 package main
 
 import (
-	"bufio"
-	"fmt"
 	"log"
 	"math"
 	"os"
-	"strings"
 	"time"
-
-	"github.com/gookit/color"
 )
 
 func isValidFolderPath(folder string) bool {
@@ -23,23 +18,6 @@ func isValidFolderPath(folder string) bool {
 	}
 
 	return info.IsDir()
-}
-
-func getFolderFromUser(reader *bufio.Reader) string {
-	for {
-		fmt.Print("Enter the folder path to scan for Git repositories: ")
-		folder, err := reader.ReadString('\n')
-		if err != nil {
-			log.Fatal(err)
-		}
-		folder = strings.TrimSpace(folder)
-
-		if isValidFolderPath(folder) {
-			return folder
-		}
-
-		color.Red.Println("Invalid folder path. Please try again.")
-	}
 }
 
 func daysAgo(t time.Time) int {

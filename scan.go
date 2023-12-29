@@ -4,10 +4,29 @@ import (
 	"io/fs"
 	"log"
 	"path/filepath"
-	"strings"
+	"slices"
 
 	"github.com/gookit/color"
 )
+
+var excludedFolders = []string{
+	"node_modules",
+	"vendor",
+	// ".git", // already excluded
+	".svn",
+	".hg",
+	".bzr",
+	"_vendor",
+	"godeps",
+	"thirdparty",
+	"bin",
+	"obj",
+	"testdata",
+	"examples",
+	"tmp",
+	"build",
+	// ...
+}
 
 func scanGitFolders(root string) ([]string, error) {
 	var gitFolders []string
@@ -23,8 +42,8 @@ func scanGitFolders(root string) ([]string, error) {
 			return filepath.SkipDir // Skip further traversal within this directory
 		}
 
-		// Skip node_modules directories
-		if d.IsDir() && (strings.ToLower(d.Name()) == "node_modules" || strings.ToLower(d.Name()) == "vendor") {
+		// Skip dependency directories // not needed + will slow down the tool
+		if d.IsDir() && slices.Contains(excludedFolders, d.Name()) {
 			return filepath.SkipDir
 		}
 

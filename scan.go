@@ -5,6 +5,7 @@ import (
 	"log"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/gookit/color"
 )
@@ -43,7 +44,7 @@ func scanGitFolders(root string) ([]string, error) {
 		}
 
 		// Skip dependency directories // not needed + will slow down the tool
-		if d.IsDir() && slices.Contains(excludedFolders, d.Name()) {
+		if d.IsDir() && slices.Contains(excludedFolders, strings.ToLower(d.Name())) {
 			return filepath.SkipDir
 		}
 

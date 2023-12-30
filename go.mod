@@ -1,4 +1,4 @@
-module github.com/abdullah-alaadine/gitcs
+module github.com/knbr13/gitcs
 
 go 1.20
 

@@ -11,7 +11,7 @@ Git Commits Visualizer, a command-line tool written in Go that enables developer
 To install this tool, ensure that you have Go installed on your machine. Then, execute the following command:
 
 ```bash
-  go install github.com/abdullah-alaadine/gitcs@latest
+  go install github.com/knbr13/gitcs@latest
 ```
 
 Or if you don't have Go installed, download the latest release found in this repository.
@@ -32,4 +32,4 @@ Contributions are welcome! If you would like to contribute to this project, plea
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/abdullah-alaadine/gitcs/blob/main/LICENSE). See the [LICENSE](https://github.com/abdullah-alaadine/gitcs/blob/main/LICENSE) file for details.
+This project is licensed under the [MIT License](https://github.com/knbr13/gitcs/blob/main/LICENSE). See the [LICENSE](https://github.com/knbr13/gitcs/blob/main/LICENSE) file for details.

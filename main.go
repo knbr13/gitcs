@@ -1,9 +1,11 @@
 package main
 
 import (
+	"log"
 	"time"
 
 	"github.com/briandowns/spinner"
+	"github.com/gookit/color"
 )
 
 func main() {
@@ -15,7 +17,10 @@ func main() {
 		s.Start()
 		defer s.Stop()
 
-		repos := scan(folder)
+		repos, err := scanGitFolders(folder)
+		if err != nil {
+			log.Fatal(color.Red.Sprintf("Error: %v\n", err))
+		}
 		stats(email, repos)
 	}()
 }

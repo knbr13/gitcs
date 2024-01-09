@@ -9,7 +9,10 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
-var sixMonthsAgo time.Time = time.Now().AddDate(0, -6, 0)
+const sixMonthsInDays int = 182
+
+var now = time.Now()
+var sixMonthsAgo = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -sixMonthsInDays)
 var daysAgoFromSixMonths int = daysAgo(sixMonthsAgo)
 
 func stats(email string, repos []string) {

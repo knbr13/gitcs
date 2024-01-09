@@ -36,7 +36,7 @@ func printTable(commits map[int]int) {
 	max := getMaxValue(commits)
 	for i := 0; i < 7; i++ {
 		s.WriteString(fmt.Sprintf("%-5s", getDay(i)))
-		for j := daysAgoFromSixMonths + calcOffset() - 1; j >= 0; j -= 7 {
+		for j := sixMonthsInDays + calcOffset(); j >= 0; j -= 7 {
 			s.WriteString(printCell(commits[j-i], max))
 		}
 		fmt.Println(s.String())

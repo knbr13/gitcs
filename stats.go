@@ -12,7 +12,6 @@ import (
 const sixMonthsInDays int = 182
 
 var now = time.Now()
-var sixMonthsAgo = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -sixMonthsInDays)
 
 func stats(email string, repos []string) {
 	commits, err := processRepos(repos, email)
@@ -29,7 +28,7 @@ func fillCommits(path, email string, commits map[int]int) error {
 		return err
 	}
 
-	commitIterator, err := repo.Log(&git.LogOptions{Since: &sixMonthsAgo})
+	commitIterator, err := repo.Log(&git.LogOptions{Since: &since, Until: &until})
 	if err != nil {
 		return err
 	}

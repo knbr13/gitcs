@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"time"
 
@@ -23,4 +24,31 @@ func main() {
 		}
 		stats(email, repos)
 	}()
+}
+
+var since, until time.Time
+
+func init() {
+	var sinceflag, untilflag string
+	flag.StringVar(&sinceflag, "since", "", "start date")
+	flag.StringVar(&untilflag, "until", "", "end date")
+	flag.Parse()
+
+	var err error
+	if untilflag != "" {
+		until, err = time.Parse("2006-01-02", untilflag)
+		if err != nil {
+			log.Fatal(color.Red.Sprintf("Invalid end date format. Please use the format: 2006-01-02"))
+		}
+	} else {
+		until = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	}
+	if sinceflag != "" {
+		since, err = time.Parse("2006-01-02", sinceflag)
+		if err != nil {
+			log.Fatal(color.Red.Sprintf("Invalid start date format. Please use the format: 2006-01-02"))
+		}
+	} else {
+		since = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -sixMonthsInDays)
+	}
 }

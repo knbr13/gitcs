@@ -41,7 +41,7 @@ func init() {
 			log.Fatal(color.Red.Sprintf("Invalid 'until' date format. Please use the format: 2006-01-02"))
 		}
 	} else {
-		until = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		until = now
 	}
 	if sinceflag != "" {
 		since, err = time.Parse("2006-01-02", sinceflag)

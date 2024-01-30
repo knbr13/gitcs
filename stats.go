@@ -45,27 +45,6 @@ func fillCommits(path, email string, commits map[int]int) error {
 	return err
 }
 
-func calcOffset() int {
-	now := time.Now()
-	switch now.Weekday() {
-	case time.Sunday:
-		return 0
-	case time.Monday:
-		return 1
-	case time.Tuesday:
-		return 2
-	case time.Wednesday:
-		return 3
-	case time.Thursday:
-		return 4
-	case time.Friday:
-		return 5
-	case time.Saturday:
-		return 6
-	}
-	panic("unhandled time")
-}
-
 func processRepos(repos []string, email string) (map[int]int, error) {
 	m := map[int]int{}
 	var err error

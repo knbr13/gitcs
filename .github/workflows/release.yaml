@@ -1,4 +1,4 @@
-name: Build and Release
+name: Create Release
 
 on:
   workflow_dispatch:
@@ -26,7 +26,6 @@ jobs:
     - name: Build and Release
       run: |
         make all
-        # You can add any additional steps here, such as testing or other actions you need before releasing
 
     - name: GitHub Release
       uses: softprops/action-gh-release@v1

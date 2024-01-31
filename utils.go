@@ -23,14 +23,14 @@ func isValidFolderPath(folder string) bool {
 var today = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
 func daysAgo(t time.Time) int {
-	hours := int(today.Sub(t).Hours())
-	if hours < 0 {
+	milliSeconds := int(today.Sub(t).Milliseconds()) // milliseconds to days: 1000 * 60 * 60 * 24
+	if milliSeconds < 0 {
 		return 0
 	}
-	if hours%24 == 0 {
-		return hours / 24
+	if milliSeconds%(1000*60*60*24) == 0 {
+		return milliSeconds / (1000 * 60 * 60 * 24)
 	}
-	return hours/24 + 1
+	return milliSeconds/(1000*60*60*24) + 1
 }
 
 func getMaxValue(m map[int]int) int {

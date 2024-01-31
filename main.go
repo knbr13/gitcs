@@ -40,6 +40,9 @@ func init() {
 		if err != nil {
 			log.Fatal(color.Red.Sprintf("Invalid 'until' date format. Please use the format: 2006-01-02"))
 		}
+		if until.After(now) {
+			until = now
+		}
 	} else {
 		until = now
 	}

@@ -39,6 +39,9 @@ func fillCommits(path, email string, commits map[int]int) error {
 		}
 
 		days := daysAgo(c.Author.When)
+		if days < 0 {
+			return nil
+		}
 		commits[days]++
 		return nil
 	})

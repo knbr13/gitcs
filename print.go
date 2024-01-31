@@ -36,6 +36,9 @@ func printTable(commits map[int]int) {
 	for since.Weekday() != time.Sunday {
 		since = since.AddDate(0, 0, -1)
 	}
+	for until.Weekday() != time.Saturday {
+		until = until.AddDate(0, 0, 1)
+	}
 
 	s := strings.Builder{}
 

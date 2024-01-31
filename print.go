@@ -45,7 +45,7 @@ func printTable(commits map[int]int) {
 	for i := 0; i < 7; i++ {
 		s.WriteString(fmt.Sprintf("%-5s", getDay(i)))
 		sn2 := since
-		for sn2.Before(until) {
+		for !sn2.After(until) {
 			d := daysAgo(sn2)
 			s.WriteString(printCell(commits[d], max))
 			sn2 = sn2.AddDate(0, 0, 7)

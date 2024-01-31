@@ -36,14 +36,21 @@ func printTable(commits map[int]int) {
 	for since.Weekday() != time.Sunday {
 		since = since.AddDate(0, 0, -1)
 	}
-	days := int(until.Sub(since).Hours() / 24)
+	for until.Weekday() != time.Saturday {
+		until = until.AddDate(0, 0, 1)
+	}
 
 	s := strings.Builder{}
+
 	for i := 0; i < 7; i++ {
 		s.WriteString(fmt.Sprintf("%-5s", getDay(i)))
-		for j := days; j >= 0; j -= 7 {
-			s.WriteString(printCell(commits[j-i], max))
+		sn2 := since
+		for !sn2.After(until) {
+			d := daysAgo(sn2)
+			s.WriteString(printCell(commits[d], max))
+			sn2 = sn2.AddDate(0, 0, 7)
 		}
+		since = since.AddDate(0, 0, 1)
 		fmt.Println(s.String())
 		s.Reset()
 	}

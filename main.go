@@ -40,6 +40,9 @@ func init() {
 		if err != nil {
 			log.Fatal(color.Red.Sprintf("Invalid 'until' date format. Please use the format: 2006-01-02"))
 		}
+		if until.After(now) {
+			until = now
+		}
 	} else {
 		until = now
 	}
@@ -49,6 +52,6 @@ func init() {
 			log.Fatal(color.Red.Sprintf("Invalid 'since' date format. Please use the format: 2006-01-02"))
 		}
 	} else {
-		since = time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -sixMonthsInDays)
+		since = time.Date(until.Year(), until.Month(), until.Day(), 0, 0, 0, 0, until.Location()).AddDate(0, 0, -sixMonthsInDays)
 	}
 }

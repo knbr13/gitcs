@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"math"
 	"os"
 	"os/exec"
@@ -15,7 +15,8 @@ func isValidFolderPath(folder string) bool {
 		if os.IsNotExist(err) {
 			return false
 		}
-		log.Fatal(err)
+		fmt.Fprintf(os.Stderr, "gitcs: path %q: error: %s\n", folder, err.Error())
+		os.Exit(1)
 	}
 
 	return info.IsDir()
@@ -47,7 +48,8 @@ func getMaxValue(m map[int]int) int {
 func getGlobalEmailFromGit() string {
 	localEmail, err := exec.Command("git", "config", "--global", "user.email").Output()
 	if err != nil {
-		log.Fatal("gitcs: unable to retrieve your global Git email:", err)
+		fmt.Fprintf(os.Stderr, "gitcs: unable to retrieve your global Git email: %s", err.Error())
+		os.Exit(1)
 	}
 
 	return string(localEmail)

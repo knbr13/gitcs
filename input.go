@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
+	"os"
 	"strings"
 
 	"github.com/gookit/color"
@@ -16,12 +16,13 @@ func getUserInput(reader *bufio.Reader, prompt string, fn validator) string {
 		fmt.Print(prompt)
 		input, err := reader.ReadString('\n')
 		if err != nil {
-			log.Fatal(err)
+			fmt.Fprintf(os.Stderr, "gitcs: error reading input: %s\n", err.Error())
+			os.Exit(1)
 		}
 		if fn(input) {
 			return input
 		}
-		fmt.Println(color.Yellow.Sprint("Invalid input. Please try again!"))
+		fmt.Println(color.Yellow.Sprint("invalid input. Please try again!"))
 	}
 }
 

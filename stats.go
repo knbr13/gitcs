@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/go-git/go-git/v5"
@@ -14,10 +13,7 @@ const sixMonthsInDays int = 182
 var now = time.Now()
 
 func stats(email string, repos []string) {
-	commits, err := processRepos(repos, email)
-	if err != nil {
-		log.Fatal(err)
-	}
+	commits := processRepos(repos, email)
 	fmt.Println()
 	printTable(commits)
 }
@@ -48,14 +44,14 @@ func fillCommits(path, email string, commits map[int]int) error {
 	return err
 }
 
-func processRepos(repos []string, email string) (map[int]int, error) {
+func processRepos(repos []string, email string) map[int]int {
 	m := map[int]int{}
 	var err error
 	for _, repo := range repos {
 		err = fillCommits(repo, email, m)
 		if err != nil {
-			return nil, err
+			fmt.Printf("failed to fill commits in %q: %v", repo, err)
 		}
 	}
-	return m, nil
+	return m
 }

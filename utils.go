@@ -4,6 +4,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"os/exec"
 	"time"
 )
 
@@ -41,4 +42,13 @@ func getMaxValue(m map[int]int) int {
 		}
 	}
 	return max
+}
+
+func getGlobalEmailFromGit() string {
+	localEmail, err := exec.Command("git", "config", "--global", "user.email").Output()
+	if err != nil {
+		log.Fatal("gitcs: unable to retrieve your global Git email:", err)
+	}
+
+	return string(localEmail)
 }

@@ -1,20 +1,46 @@
 # gitcs
 
-Git Commits Visualizer, a command-line tool written in Go that enables developers to scan their local Git repositories and generate a visual contributions graph. This tool is useful for developers who work with multiple Git services, such as GitHub and GitLab. It allows them to visualize their contributions across both platforms, even in offline or disconnected environments.
+Git Commits Visualizer (`gitcs` shortly) is a command-line tool that allows developers to analyze their local Git repositories and generate a visual contributions graph. This tool proves valuable for developers working across multiple Git services like GitHub and GitLab (because there are already graphs provided online by each of them, but each has it's own data, this tool works locally, so no matter where you've pushed the project, commits will count), enabling them to visualize contributions seamlessly, even in offline or disconnected environments.
 
 ## Screenshots
 
 ![gitcs](./gitcs.jpg)
 
+## Dependencies
+
+- Go
+- Git
+
 ## Installation
 
-To install this tool, ensure that you have Go installed on your machine. Then, execute the following command:
+Ensure that you have Go installed on your machine before installing this tool. Execute the following command:
+
 
 ```bash
   go install github.com/knbr13/gitcs@latest
 ```
 
-Or if you don't have Go installed, download the latest release found in this repository.
+Alternatively, if you don't have Go installed, download the latest release from this repository.
+
+## Usage
+
+The basic usage of this tool is to just run it, it will generate a graph of commits from the last 6 months.
+```bash
+> gitcs
+```
+
+These commits are committed by your global Git email address, but you can also use the -email flag to show commits for another Git email.
+```bash
+> gitcs -email "email@example.com"
+```
+
+By default, the tool displays commits from the last 6 months, but you can configure this using the `since` and `until` flags.
+```bash
+> gitcs -since "2023-10-24" -until "2024-01-15"
+```
+
+- If no global Git email is set on your machine, then you have to specify it using the `-email` flag.
+- The since and until flags don't need to be specified together.
 
 ## Contributions
 

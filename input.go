@@ -4,9 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"log"
-	"net/mail"
-	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/gookit/color"
@@ -28,45 +25,11 @@ func getUserInput(reader *bufio.Reader, prompt string, fn validator) string {
 	}
 }
 
-func getInputFromUser() (string, string) {
-	reader := bufio.NewReader(os.Stdin)
-
-	var email string
-	autoEmail := getUserInput(
-		reader,
-		"Do you want to retrieve your global Git email address automatically? (y/n): ",
-		func(s string) bool {
-			if s := strings.ToLower(strings.TrimSpace(s)); s == "y" || s == "n" {
-				return true
-			}
-			return false
-		},
-	)
-
-	if strings.ToLower(strings.TrimSpace(autoEmail)) == "y" {
-		email = getAutoEmailFromGit()
-	} else {
-		email = getUserInput(reader, "Enter your Git email address: ", func(s string) bool {
-			_, err := mail.ParseAddress(strings.ToLower(strings.TrimSpace(s)))
-			return err == nil
-		})
-	}
-	email = strings.ToLower(strings.TrimSpace(email))
-
+func getPathFromUser(reader *bufio.Reader) string {
 	folder := getUserInput(reader, "Enter the folder path to scan for Git repositories: ", func(s string) bool {
 		return isValidFolderPath(strings.ToLower(strings.TrimSpace(s)))
 	})
 	folder = strings.ToLower(strings.TrimSpace(folder))
 
-	return email, folder
-}
-
-func getAutoEmailFromGit() string {
-	localEmail, err := exec.Command("git", "config", "--global", "user.email").Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Print("Your git email is: ", color.Cyan.Sprint(string(localEmail)))
-	return string(localEmail)
+	return folder
 }

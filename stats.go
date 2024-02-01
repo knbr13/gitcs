@@ -12,12 +12,6 @@ const sixMonthsInDays int = 182
 
 var now = time.Now()
 
-func stats(email string, repos []string) {
-	commits := processRepos(repos, email)
-	fmt.Println()
-	printTable(commits)
-}
-
 func fillCommits(path, email string, commits map[int]int) error {
 	repo, err := git.PlainOpen(path)
 	if err != nil {

@@ -2,9 +2,7 @@
 
 Git Commits Visualizer (`gitcs` shortly) is a command-line tool that allows developers to analyze their local Git repositories and generate a visual contributions graph. This tool proves valuable for developers working across multiple Git services like GitHub and GitLab (because there are already graphs provided online by each of them, but each has it's own data, this tool works locally, so no matter where you've pushed the project, commits will count), enabling them to visualize contributions seamlessly, even in offline or disconnected environments.
 
-## Screenshots
-
-![gitcs](./gitcs.jpg)
+![gitcs](./gitcs.gif)
 
 ## Dependencies
 

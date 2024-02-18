@@ -22,7 +22,7 @@ func main() {
 
 	repos, err := scanGitFolders(folder)
 	if err != nil {
-		fmt.Fprint(os.Stderr, color.Red.Sprintf("\nerror: %s\n", err.Error()))
+		fmt.Fprint(os.Stderr, color.Red.Sprintf("\ngitcs: error: %s\n", err.Error()))
 		s.Stop()
 		os.Exit(1)
 	}

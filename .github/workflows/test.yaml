@@ -1,0 +1,29 @@
+name: Go Test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.22
+
+    - name: chmod
+      run: chmod +x ./setup-test.sh
+
+    - name: setup tests
+      run: ./setup-test.sh
+
+    - name: Run tests
+      run: go test ./...

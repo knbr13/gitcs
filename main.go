@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"net/mail"
 	"os"
 	"strings"
 	"time"
@@ -23,37 +22,23 @@ func main() {
 	flag.StringVar(&email, "email", strings.TrimSpace(getGlobalEmailFromGit()), "you Git email")
 	flag.Parse()
 
-	var err error
-	if untilflag != "" {
-		until, err = time.Parse("2006-01-02", untilflag)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, color.Red.Sprintf("gitcs: invalid 'until' date format. please use the format: 2006-01-02"))
-			os.Exit(1)
-		}
-		if until.After(now) {
-			until = now
-		}
-	} else {
-		until = now
-	}
-	if sinceflag != "" {
-		since, err = time.Parse("2006-01-02", sinceflag)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, color.Red.Sprintf("gitcs: invalid 'since' date format. please use the format: 2006-01-02"))
-			os.Exit(1)
-		}
-	} else {
-		since = time.Date(until.Year(), until.Month(), until.Day(), 0, 0, 0, 0, until.Location()).AddDate(0, 0, -sixMonthsInDays)
+	err := setTimeFlags(sinceflag, untilflag)
+	if err != nil {
+		fmt.Fprint(os.Stderr, color.Red.Sprintf("gitcs: %s\n", err.Error()))
+		os.Exit(1)
 	}
 
-	_, err = mail.ParseAddress(strings.TrimSpace(email))
-	if err != nil {
+	if valid := isValidEmail(email); !valid {
 		fmt.Fprintln(os.Stderr, color.Red.Sprintf("gitcs: invalid 'email' address"))
 		os.Exit(1)
 	}
 
 	reader := bufio.NewReader(os.Stdin)
-	folder := getPathFromUser(reader)
+	folder, err := getPathFromUser(reader)
+	if err != nil {
+		fmt.Fprint(os.Stderr, color.Red.Sprintf("gitcs: error reading input: %s\n", err.Error()))
+		os.Exit(1)
+	}
 
 	s := spinner.New(spinner.CharSets[6], 100*time.Millisecond, spinner.WithSuffix(" loading..."))
 

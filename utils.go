@@ -3,10 +3,16 @@ package main
 import (
 	"fmt"
 	"math"
+	"net/mail"
 	"os"
 	"os/exec"
 	"time"
 )
+
+func isValidEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
+}
 
 func isValidFolderPath(folder string) bool {
 	// Check if the folder exists and is a directory
@@ -53,4 +59,28 @@ func getGlobalEmailFromGit() string {
 	}
 
 	return string(localEmail)
+}
+
+func setTimeFlags(sinceflag, untilflag string) error {
+	var err error
+	if untilflag != "" {
+		until, err = time.Parse("2006-01-02", untilflag)
+		if err != nil {
+			return fmt.Errorf("invalid 'until' date format. please use the format: 2006-01-02")
+		}
+		if until.After(now) {
+			until = now
+		}
+	} else {
+		until = now
+	}
+	if sinceflag != "" {
+		since, err = time.Parse("2006-01-02", sinceflag)
+		if err != nil {
+			return fmt.Errorf("invalid 'since' date format. please use the format: 2006-01-02")
+		}
+	} else {
+		since = time.Date(until.Year(), until.Month(), until.Day(), 0, 0, 0, 0, until.Location()).AddDate(0, 0, -sixMonthsInDays)
+	}
+	return nil
 }

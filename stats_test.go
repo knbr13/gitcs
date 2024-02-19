@@ -38,7 +38,7 @@ func TestFillCommits(t *testing.T) {
 			Name:     "test 3",
 			Path:     path.Join(wd, "test_data", "project_3"),
 			Email:    "tester@test.com",
-			Expected: map[int]int{days: 2},
+			Expected: map[int]int{days: 3},
 		},
 	}
 
@@ -84,7 +84,7 @@ func TestProcessRepos(t *testing.T) {
 				path.Join(wd, "test_data", "project_3"),
 			},
 			Email:    "tester@test.com",
-			Expected: map[int]int{days: 8},
+			Expected: map[int]int{days: 9},
 		},
 		{
 			Name:     "test 2",

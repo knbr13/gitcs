@@ -1,0 +1,9 @@
+[submodule "test_data/project_1"]
+	path = test_data/project_1
+	url = ./test_data/project_1/
+[submodule "test_data/project_2"]
+	path = test_data/project_2
+	url = ./test_data/project_2/
+[submodule "test_data/project_3"]
+	path = test_data/project_3
+	url = ./test_data/project_3/

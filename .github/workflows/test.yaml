@@ -26,12 +26,19 @@ jobs:
     - name: setup tests
       run: ./setup-test.sh
 
-    - name: Run tests
-      run: go test ./...
+    - name: Run tests and generate coverage report
+      run: |
+        go test -coverprofile=coverage.out ./...
+        go tool cover -func=coverage.out -o coverage.txt
+        go tool cover -html=coverage.out -o coverage.html
 
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.0.1
-      env:
+      uses: codecov/codecov-action@v4
+      with:
+        verbose: true
+        name: codecov-umbrella
+        file: coverage.txt
         fail_ci_if_error: true
-        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         slug: knbr13/gitcs
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -33,6 +33,5 @@ jobs:
       uses: codecov/codecov-action@v4.0.1
       env:
         fail_ci_if_error: true
-        files: ./coverage.txt
-        token: ${{ secrets.CODECOV_TOKEN }}
-        verbose: trueslug: knbr13/gitcs
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        slug: knbr13/gitcs

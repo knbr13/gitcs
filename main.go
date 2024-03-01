@@ -12,17 +12,15 @@ import (
 	"github.com/gookit/color"
 )
 
-var email string
-var since, until time.Time
-
 func main() {
+	var email string
 	var sinceflag, untilflag string
 	flag.StringVar(&sinceflag, "since", "", "start date")
 	flag.StringVar(&untilflag, "until", "", "end date")
 	flag.StringVar(&email, "email", strings.TrimSpace(getGlobalEmailFromGit()), "you Git email")
 	flag.Parse()
 
-	err := setTimeFlags(sinceflag, untilflag)
+	b, err := setTimeFlags(sinceflag, untilflag)
 	if err != nil {
 		fmt.Fprint(os.Stderr, color.Red.Sprintf("gitcs: %s\n", err.Error()))
 		os.Exit(1)
@@ -53,8 +51,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	commits := processRepos(repos, email)
+	commits := processRepos(repos, email, b.Since, b.Until)
 	fmt.Print("\n\n")
-	printTable(commits)
+	printTable(commits, b.Since, b.Until)
 	fmt.Print("\n\n")
+}
+
+type Boundary struct {
+	Since time.Time
+	Until time.Time
 }

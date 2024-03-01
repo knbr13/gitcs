@@ -30,7 +30,7 @@ func getDay(i int) string {
 	return strings.Repeat(" ", 3)
 }
 
-func printTable(commits map[int]int) {
+func printTable(commits map[int]int, since, until time.Time) {
 	for since.Weekday() != time.Sunday {
 		since = since.AddDate(0, 0, -1)
 	}

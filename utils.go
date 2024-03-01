@@ -61,26 +61,28 @@ func getGlobalEmailFromGit() string {
 	return string(localEmail)
 }
 
-func setTimeFlags(sinceflag, untilflag string) error {
+func setTimeFlags(sinceflag, untilflag string) (*Boundary, error) {
 	var err error
+	var boundary Boundary
 	if untilflag != "" {
-		until, err = time.Parse("2006-01-02", untilflag)
+		boundary.Until, err = time.Parse("2006-01-02", untilflag)
 		if err != nil {
-			return fmt.Errorf("invalid 'until' date format. please use the format: 2006-01-02")
+			return nil, fmt.Errorf("invalid 'until' date format. please use the format: 2006-01-02")
 		}
-		if until.After(now) {
-			until = now
+		if boundary.Until.After(now) {
+			boundary.Until = now
 		}
 	} else {
-		until = now
+		boundary.Until = now
 	}
 	if sinceflag != "" {
-		since, err = time.Parse("2006-01-02", sinceflag)
+		boundary.Since, err = time.Parse("2006-01-02", sinceflag)
 		if err != nil {
-			return fmt.Errorf("invalid 'since' date format. please use the format: 2006-01-02")
+			return nil, fmt.Errorf("invalid 'since' date format. please use the format: 2006-01-02")
 		}
 	} else {
-		since = time.Date(until.Year(), until.Month(), until.Day(), 0, 0, 0, 0, until.Location()).AddDate(0, 0, -sixMonthsInDays)
+		boundary.Since = time.Date(boundary.Until.Year(), boundary.Until.Month(), boundary.Until.Day(), 0, 0, 0, 0, boundary.Until.Location()).AddDate(0, 0, -sixMonthsInDays)
 	}
-	return nil
+
+	return &boundary, nil
 }

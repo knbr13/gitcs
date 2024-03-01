@@ -252,7 +252,7 @@ func TestSetTimeFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := setTimeFlags(tt.sinceflag, tt.untilflag)
+			b, err := setTimeFlags(tt.sinceflag, tt.untilflag)
 
 			if err != nil {
 				if err.Error() != tt.expectedError {
@@ -261,12 +261,12 @@ func TestSetTimeFlags(t *testing.T) {
 				return
 			}
 
-			if since != tt.expectedSince {
-				t.Errorf("Unexpected value of 'since'. Expected: %v, Got: %v", tt.expectedSince, since)
+			if b.Since != tt.expectedSince {
+				t.Errorf("Unexpected value of 'since'. Expected: %v, Got: %v", tt.expectedSince, b.Since)
 			}
 
-			if until != tt.expectedUntil {
-				t.Errorf("Unexpected value of 'until'. Expected: %v, Got: %v", tt.expectedUntil, until)
+			if b.Until != tt.expectedUntil {
+				t.Errorf("Unexpected value of 'until'. Expected: %v, Got: %v", tt.expectedUntil, b.Until)
 			}
 		})
 	}

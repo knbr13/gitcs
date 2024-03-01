@@ -153,14 +153,14 @@ func TestPrintTable(t *testing.T) {
 		13: 0,
 	}
 
-	since = time.Date(2024, 2, 7, 0, 0, 0, 0, time.UTC)
-	until = time.Date(2024, 2, 19, 0, 0, 0, 0, time.UTC)
+	since := time.Date(2024, 2, 7, 0, 0, 0, 0, time.UTC)
+	until := time.Date(2024, 2, 19, 0, 0, 0, 0, time.UTC)
 
 	oldStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	printTable(commits)
+	printTable(commits, since, until)
 	w.Close()
 
 	dat, err := io.ReadAll(r)
@@ -172,6 +172,13 @@ func TestPrintTable(t *testing.T) {
 
 	var buf strings.Builder
 	_, _ = fmt.Fprint(&buf, string(dat))
+
+	for since.Weekday() != time.Sunday {
+		since = since.AddDate(0, 0, -1)
+	}
+	for until.Weekday() != time.Saturday {
+		until = until.AddDate(0, 0, 1)
+	}
 
 	s := strings.Builder{}
 	s1 := since

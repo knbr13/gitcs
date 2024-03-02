@@ -51,9 +51,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	commits := processRepos(repos, email, b.Since, b.Until)
+	commits := processRepos(repos, email, *b)
 	fmt.Print("\n\n")
-	printTable(commits, b.Since, b.Until)
+	printTable(commits, *b)
 	fmt.Print("\n\n")
 }
 

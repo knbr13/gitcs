@@ -30,24 +30,24 @@ func getDay(i int) string {
 	return strings.Repeat(" ", 3)
 }
 
-func printTable(commits map[int]int, since, until time.Time) {
-	for since.Weekday() != time.Sunday {
-		since = since.AddDate(0, 0, -1)
+func printTable(commits map[int]int, b Boundary) {
+	for b.Since.Weekday() != time.Sunday {
+		b.Since = b.Since.AddDate(0, 0, -1)
 	}
-	for until.Weekday() != time.Saturday {
-		until = until.AddDate(0, 0, 1)
+	for b.Until.Weekday() != time.Saturday {
+		b.Until = b.Until.AddDate(0, 0, 1)
 	}
 
-	fmt.Printf("%s     %s\n", sixEmptySpaces, buildHeader(since, until))
+	fmt.Printf("%s     %s\n", sixEmptySpaces, buildHeader(b.Since, b.Until))
 	max := getMaxValue(commits)
 
 	s := strings.Builder{}
-	s1 := since
+	s1 := b.Since
 
 	for i := 0; i < 7; i++ {
 		s.WriteString(fmt.Sprintf("%-5s", getDay(i)))
 		sn2 := s1
-		for !sn2.After(until) {
+		for !sn2.After(b.Until) {
 			d := daysAgo(sn2)
 			s.WriteString(printCell(commits[d], max))
 			sn2 = sn2.AddDate(0, 0, 7)

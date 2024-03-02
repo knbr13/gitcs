@@ -12,13 +12,13 @@ const sixMonthsInDays int = 182
 
 var now = time.Now()
 
-func fillCommits(path, email string, commits map[int]int, since, until time.Time) error {
+func fillCommits(path, email string, commits map[int]int, b Boundary) error {
 	repo, err := git.PlainOpen(path)
 	if err != nil {
 		return err
 	}
 
-	commitIterator, err := repo.Log(&git.LogOptions{Since: &since, Until: &until})
+	commitIterator, err := repo.Log(&git.LogOptions{Since: &b.Since, Until: &b.Until})
 	if err != nil {
 		return err
 	}
@@ -38,11 +38,11 @@ func fillCommits(path, email string, commits map[int]int, since, until time.Time
 	return err
 }
 
-func processRepos(repos []string, email string, since, until time.Time) map[int]int {
+func processRepos(repos []string, email string, b Boundary) map[int]int {
 	m := map[int]int{}
 	var err error
 	for _, repo := range repos {
-		err = fillCommits(repo, email, m, since, until)
+		err = fillCommits(repo, email, m, b)
 		if err != nil {
 			fmt.Printf("failed to fill commits in %q: %v", repo, err)
 		}

@@ -153,14 +153,16 @@ func TestPrintTable(t *testing.T) {
 		13: 0,
 	}
 
-	since := time.Date(2024, 2, 7, 0, 0, 0, 0, time.UTC)
-	until := time.Date(2024, 2, 19, 0, 0, 0, 0, time.UTC)
+	b := Boundary{
+		Since: time.Date(2024, 2, 7, 0, 0, 0, 0, time.UTC),
+		Until: time.Date(2024, 2, 19, 0, 0, 0, 0, time.UTC),
+	}
 
 	oldStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	printTable(commits, since, until)
+	printTable(commits, b)
 	w.Close()
 
 	dat, err := io.ReadAll(r)
@@ -173,23 +175,23 @@ func TestPrintTable(t *testing.T) {
 	var buf strings.Builder
 	_, _ = fmt.Fprint(&buf, string(dat))
 
-	for since.Weekday() != time.Sunday {
-		since = since.AddDate(0, 0, -1)
+	for b.Since.Weekday() != time.Sunday {
+		b.Since = b.Since.AddDate(0, 0, -1)
 	}
-	for until.Weekday() != time.Saturday {
-		until = until.AddDate(0, 0, 1)
+	for b.Until.Weekday() != time.Saturday {
+		b.Until = b.Until.AddDate(0, 0, 1)
 	}
 
 	s := strings.Builder{}
-	s1 := since
+	s1 := b.Since
 
-	s.WriteString(fmt.Sprintf("%s     %s\n", sixEmptySpaces, buildHeader(since, until)))
+	s.WriteString(fmt.Sprintf("%s     %s\n", sixEmptySpaces, buildHeader(b.Since, b.Until)))
 
 	max := getMaxValue(commits)
 	for i := 0; i < 7; i++ {
 		s.WriteString(fmt.Sprintf("%-5s", getDay(i)))
 		sn2 := s1
-		for !sn2.After(until) {
+		for !sn2.After(b.Until) {
 			d := daysAgo(sn2)
 			s.WriteString(printCell(commits[d], max))
 			sn2 = sn2.AddDate(0, 0, 7)

@@ -42,13 +42,15 @@ func TestFillCommits(t *testing.T) {
 		},
 	}
 
-	since := time.Now().AddDate(0, 0, -1)
-	until := time.Now().AddDate(0, 0, 1)
+	b := Boundary{
+		Since: time.Now().AddDate(0, 0, -1),
+		Until: time.Now().AddDate(0, 0, 1),
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
 			commits := map[int]int{}
-			err = fillCommits(tt.Path, tt.Email, commits, since, until)
+			err = fillCommits(tt.Path, tt.Email, commits, b)
 			if err != nil {
 				t.Fatalf("failed to fill commits in %q: %v", tt.Path, err)
 			}
@@ -97,12 +99,14 @@ func TestProcessRepos(t *testing.T) {
 		},
 	}
 
-	since := time.Now().AddDate(0, 0, -1)
-	until := time.Now().AddDate(0, 0, 1)
+	b := Boundary{
+		Since: time.Now().AddDate(0, 0, -1),
+		Until: time.Now().AddDate(0, 0, 1),
+	}
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			commits := processRepos(tt.Repos, tt.Email, since, until)
+			commits := processRepos(tt.Repos, tt.Email, b)
 			if len(commits) != len(tt.Expected) {
 				t.Errorf("processRepos11() = %v, want %v", commits, tt.Expected)
 			}

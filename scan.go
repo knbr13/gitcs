@@ -3,27 +3,42 @@ package main
 import (
 	"io/fs"
 	"path/filepath"
-	"slices"
 	"strings"
 )
 
-var excludedFolders = []string{
-	"node_modules",
-	"vendor",
-	// ".git", // already excluded
-	".svn",
-	".hg",
-	".bzr",
-	"_vendor",
-	"godeps",
-	"thirdparty",
-	"bin",
-	"obj",
-	"testdata",
-	"examples",
-	"tmp",
-	"build",
-	// ...
+// excludedFolders is a map of folder names (case-insensitive) to be excluded during the scan.
+var excludedFolders = map[string]bool{
+	"node_modules": true,
+	"vendor":       true,
+	".svn":         true,
+	".hg":          true,
+	".bzr":         true,
+	"_vendor":      true,
+	"godeps":       true,
+	"bin":          true,
+	"obj":          true,
+	"tmp":          true,
+	"build":        true,
+	".vscode":      true,
+	"dist":         true,
+	"__pycache__":  true,
+	".cache":       true,
+	"coverage":     true,
+	"target":       true,
+	"out":          true,
+	".idea":        true,
+	".gradle":      true,
+	".terraform":   true,
+	"env":          true,
+	".ds_store":    true,
+	".next":        true,
+	".nuxt":        true,
+	".expo":        true,
+	".circleci":    true,
+	".github":      true,
+	".gitlab":      true,
+	".vagrant":     true,
+	".serverless":  true,
 }
 
 func scanGitFolders(root string) ([]string, error) {
@@ -39,8 +54,8 @@ func scanGitFolders(root string) ([]string, error) {
 			return filepath.SkipDir // Skip further traversal within this directory
 		}
 
-		// Skip dependency directories // not needed + will slow down the tool
-		if d.IsDir() && slices.Contains(excludedFolders, strings.ToLower(d.Name())) {
+		// Skip dependency directories
+		if d.IsDir() && excludedFolders[strings.ToLower(d.Name())] {
 			return filepath.SkipDir
 		}
 

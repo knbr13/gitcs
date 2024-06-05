@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"os"
@@ -13,11 +12,18 @@ import (
 )
 
 func main() {
-	var email string
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprint(os.Stderr, color.Red.Sprintf("gitcs: error: %s\n", err.Error()))
+		os.Exit(1)
+	}
+
+	var email, path string
 	var sinceflag, untilflag string
 	flag.StringVar(&sinceflag, "since", "", "start date")
 	flag.StringVar(&untilflag, "until", "", "end date")
 	flag.StringVar(&email, "email", strings.TrimSpace(getGlobalEmailFromGit()), "you Git email")
+	flag.StringVar(&path, "path", wd, "folder path to scan")
 	flag.Parse()
 
 	b, err := setTimeFlags(sinceflag, untilflag)
@@ -31,20 +37,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	folder, err := getPathFromUser(reader)
-	if err != nil {
-		fmt.Fprint(os.Stderr, color.Red.Sprintf("gitcs: error reading input: %s\n", err.Error()))
-		os.Exit(1)
-	}
-
 	s := spinner.New(spinner.CharSets[6], 100*time.Millisecond, spinner.WithSuffix(" loading..."))
 
 	s.Color("green")
 	s.Start()
 	defer s.Stop()
 
-	repos, err := scanGitFolders(folder)
+	repos, err := scanGitFolders(path)
 	if err != nil {
 		fmt.Fprint(os.Stderr, color.Red.Sprintf("\ngitcs: error: %s\n", err.Error()))
 		s.Stop()

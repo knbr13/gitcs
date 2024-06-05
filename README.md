@@ -37,6 +37,11 @@ By default, the tool displays commits from the last 6 months, but you can config
 > gitcs -since "2023-10-24" -until "2024-01-15"
 ```
 
+By default, the tool displays the commits made in your working directory (the directory where you at while running the tool), you can use the -path flag to specify the path to scan for commits in.
+```bash
+> gitcs -path "/home/username/dev"
+```
+
 - If no global Git email is set on your machine, then you have to specify it using the `-email` flag.
 - The since and until flags don't need to be specified together.
 

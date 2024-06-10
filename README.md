@@ -24,22 +24,17 @@ Alternatively, if you don't have Go installed, download the latest release from 
 
 The basic usage of this tool is to just run it, it will generate a graph of commits from the last 6 months.
 ```bash
-> gitcs
+> gitcs -path "/home/user/dev"
 ```
 
 These commits are committed by your global Git email address, but you can also use the -email flag to show commits for another Git email.
 ```bash
-> gitcs -email "email@example.com"
+> gitcs -email "email@example.com" -path "/home/user/dev"
 ```
 
 By default, the tool displays commits from the last 6 months, but you can configure this using the `since` and `until` flags.
 ```bash
-> gitcs -since "2023-10-24" -until "2024-01-15"
-```
-
-By default, the tool displays the commits made in your working directory (the directory where you at while running the tool), you can use the -path flag to specify the path to scan for commits in.
-```bash
-> gitcs -path "/home/username/dev"
+> gitcs -since "2023-10-24" -until "2024-01-15" -path "/home/user/dev"
 ```
 
 - If no global Git email is set on your machine, then you have to specify it using the `-email` flag.

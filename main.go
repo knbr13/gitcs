@@ -12,19 +12,18 @@ import (
 )
 
 func main() {
-	wd, err := os.Getwd()
-	if err != nil {
-		fmt.Fprint(os.Stderr, color.Red.Sprintf("gitcs: error: %s\n", err.Error()))
-		os.Exit(1)
-	}
-
 	var email, path string
 	var sinceflag, untilflag string
 	flag.StringVar(&sinceflag, "since", "", "start date")
 	flag.StringVar(&untilflag, "until", "", "end date")
 	flag.StringVar(&email, "email", strings.TrimSpace(getGlobalEmailFromGit()), "you Git email")
-	flag.StringVar(&path, "path", wd, "folder path to scan")
+	flag.StringVar(&path, "path", "", "folder path to scan")
 	flag.Parse()
+
+	if path == "" {
+		fmt.Fprintln(os.Stderr, color.Red.Sprintf("gitcs: please provide a folder path to scan"))
+		os.Exit(1)
+	}
 
 	b, err := setTimeFlags(sinceflag, untilflag)
 	if err != nil {

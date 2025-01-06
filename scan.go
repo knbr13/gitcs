@@ -7,38 +7,38 @@ import (
 )
 
 // excludedFolders is a map of folder names (case-insensitive) to be excluded during the scan.
-var excludedFolders = map[string]bool{
-	"node_modules": true,
-	"vendor":       true,
-	".svn":         true,
-	".hg":          true,
-	".bzr":         true,
-	"_vendor":      true,
-	"godeps":       true,
-	"bin":          true,
-	"obj":          true,
-	"tmp":          true,
-	"build":        true,
-	".vscode":      true,
-	"dist":         true,
-	"__pycache__":  true,
-	".cache":       true,
-	"coverage":     true,
-	"target":       true,
-	"out":          true,
-	".idea":        true,
-	".gradle":      true,
-	".terraform":   true,
-	"env":          true,
-	".ds_store":    true,
-	".next":        true,
-	".nuxt":        true,
-	".expo":        true,
-	".circleci":    true,
-	".github":      true,
-	".gitlab":      true,
-	".vagrant":     true,
-	".serverless":  true,
+var excludedFolders = map[string]struct{}{
+	"node_modules": {},
+	"vendor":       {},
+	".svn":         {},
+	".hg":          {},
+	".bzr":         {},
+	"_vendor":      {},
+	"godeps":       {},
+	"bin":          {},
+	"obj":          {},
+	"tmp":          {},
+	"build":        {},
+	".vscode":      {},
+	"dist":         {},
+	"__pycache__":  {},
+	".cache":       {},
+	"coverage":     {},
+	"target":       {},
+	"out":          {},
+	".idea":        {},
+	".gradle":      {},
+	".terraform":   {},
+	"env":          {},
+	".ds_store":    {},
+	".next":        {},
+	".nuxt":        {},
+	".expo":        {},
+	".circleci":    {},
+	".github":      {},
+	".gitlab":      {},
+	".vagrant":     {},
+	".serverless":  {},
 }
 
 func scanGitFolders(root string) ([]string, error) {
@@ -55,7 +55,8 @@ func scanGitFolders(root string) ([]string, error) {
 		}
 
 		// Skip dependency directories
-		if d.IsDir() && excludedFolders[strings.ToLower(d.Name())] {
+		_, ok := excludedFolders[strings.ToLower(d.Name())]
+		if d.IsDir() && ok {
 			return filepath.SkipDir
 		}
 

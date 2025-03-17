@@ -129,6 +129,13 @@ func TestDaysAgo(t *testing.T) {
 	}
 }
 
+func TestGetGlobalEmailFromGit(t *testing.T) {
+	email := getGlobalEmailFromGit()
+	if email == "" {
+		t.Errorf("Expected email, got empty string")
+	}
+}
+
 func TestGetMaxValue(t *testing.T) {
 	type args struct {
 		m map[int]int
@@ -247,6 +254,13 @@ func TestSetTimeFlags(t *testing.T) {
 			expectedSince: time.Date(2022, time.July, 4, 0, 0, 0, 0, time.UTC),
 			expectedUntil: time.Time{},
 			expectedError: "invalid 'until' date format. please use the format: 2006-01-02",
+		},
+		{
+			name:          "until flag is in the future",
+			untilflag:     "2099-01-01",
+			sinceflag:     "2022-01-01",
+			expectedSince: time.Date(2022, time.January, 1, 0, 0, 0, 0, time.UTC),
+			expectedUntil: now,
 		},
 	}
 

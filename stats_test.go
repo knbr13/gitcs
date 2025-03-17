@@ -100,10 +100,11 @@ func TestProcessRepos(t *testing.T) {
 	days := daysAgo(commitsDate)
 
 	tests := []struct {
-		Name     string
-		Repos    []string
-		Email    string
-		Expected map[int]int
+		Name      string
+		Repos     []string
+		Email     string
+		Expected  map[int]int
+		ExpectErr bool
 	}{
 		{
 			Name: "test 1",
@@ -111,6 +112,8 @@ func TestProcessRepos(t *testing.T) {
 				path.Join(wd, "test_data", "project_1"),
 				path.Join(wd, "test_data", "project_2"),
 				path.Join(wd, "test_data", "project_3"),
+				path.Join(wd, "test_data", "project_that_has_future_commits"),
+				path.Join(wd, "test_data", "project_by_another_contributor"),
 			},
 			Email:    "tester@test.com",
 			Expected: map[int]int{days: 9},
@@ -120,6 +123,13 @@ func TestProcessRepos(t *testing.T) {
 			Repos:    []string{},
 			Email:    "tester@test.com",
 			Expected: map[int]int{},
+		},
+		{
+			Name:      "test 3",
+			Repos:     []string{path.Join(wd, "test_data", "repo_that_does_not_exist")},
+			Email:     "tester@test.com",
+			Expected:  map[int]int{},
+			ExpectErr: true,
 		},
 	}
 
@@ -131,6 +141,12 @@ func TestProcessRepos(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
 			commits := processRepos(tt.Repos, tt.Email, b)
+			if tt.ExpectErr {
+				if len(commits) != 0 {
+					t.Fatalf("expected error, got commits results: %v", commits)
+				}
+				return
+			}
 			if len(commits) != len(tt.Expected) {
 				t.Errorf("processRepos11() = %v, want %v", commits, tt.Expected)
 			}

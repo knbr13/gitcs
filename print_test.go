@@ -94,10 +94,16 @@ func TestPrintCell(t *testing.T) {
 		expectedMessage string
 	}{
 		{
-			description:     "Zero value (/8)",
+			description:     "Zero value",
 			val:             0,
 			maxValue:        10,
 			expectedMessage: color.New(color.FgWhite, color.BgBlack).Sprintf("  - "),
+		},
+		{
+			description:     "Lower bound value (/8)",
+			val:             1,
+			maxValue:        10,
+			expectedMessage: color.New(color.FgBlack, color.BgLightCyan).Sprintf("  1 "),
 		},
 		{
 			description:     "Lower bound value (/4)",

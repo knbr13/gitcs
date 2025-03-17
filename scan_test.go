@@ -14,9 +14,10 @@ func TestScanGitFolders(t *testing.T) {
 	}
 
 	test := []struct {
-		Name string
-		Root string
-		Want []string
+		Name      string
+		Root      string
+		Want      []string
+		ExpectErr bool
 	}{
 		{
 			Name: "5 expected repos",
@@ -34,11 +35,23 @@ func TestScanGitFolders(t *testing.T) {
 			Root: path.Join(wd, ".github"),
 			Want: []string{},
 		},
+		{
+			Name:      "path does not exist",
+			Root:      path.Join(wd, "does_not_exist"),
+			Want:      []string{},
+			ExpectErr: true,
+		},
 	}
 
 	for _, tt := range test {
 		t.Run(tt.Name, func(t *testing.T) {
 			got, err := scanGitFolders(tt.Root)
+			if tt.ExpectErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				return
+			}
 			if err != nil {
 				t.Fatalf("failed to scan git folders: %v", err)
 			}

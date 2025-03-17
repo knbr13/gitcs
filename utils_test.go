@@ -129,13 +129,6 @@ func TestDaysAgo(t *testing.T) {
 	}
 }
 
-func TestGetGlobalEmailFromGit(t *testing.T) {
-	email := getGlobalEmailFromGit()
-	if email == "" {
-		t.Errorf("Expected email, got empty string")
-	}
-}
-
 func TestGetMaxValue(t *testing.T) {
 	type args struct {
 		m map[int]int

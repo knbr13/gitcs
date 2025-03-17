@@ -17,10 +17,11 @@ func TestFillCommits(t *testing.T) {
 	commitsDate := time.Date(now.Year(), now.Month(), now.Day(), 4, 0, 0, 0, now.Location())
 	days := daysAgo(commitsDate)
 	tests := []struct {
-		Name     string
-		Path     string
-		Email    string
-		Expected map[int]int
+		Name      string
+		Path      string
+		Email     string
+		Expected  map[int]int
+		ExpectErr bool
 	}{
 		{
 			Name:     "test 1",
@@ -40,6 +41,23 @@ func TestFillCommits(t *testing.T) {
 			Email:    "tester@test.com",
 			Expected: map[int]int{days: 3},
 		},
+		{
+			Name:     "test 4",
+			Path:     path.Join(wd, "test_data", "project_that_has_future_commits"),
+			Email:    "tester@test.com",
+			Expected: map[int]int{},
+		},
+		{
+			Name:     "test 5",
+			Path:     path.Join(wd, "test_data", "project_by_another_contributor"),
+			Email:    "tester@test.com",
+			Expected: map[int]int{},
+		},
+		{
+			Name:      "test 6",
+			ExpectErr: true,
+			Path:      path.Join(wd, "test_data", "project_4"),
+		},
 	}
 
 	b := Boundary{
@@ -51,6 +69,12 @@ func TestFillCommits(t *testing.T) {
 		t.Run(tt.Name, func(t *testing.T) {
 			commits := map[int]int{}
 			err = fillCommits(tt.Path, tt.Email, commits, b)
+			if tt.ExpectErr {
+				if err == nil {
+					t.Fatalf("expected error, got nil")
+				}
+				return
+			}
 			if err != nil {
 				t.Fatalf("failed to fill commits in %q: %v", tt.Path, err)
 			}

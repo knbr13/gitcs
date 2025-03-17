@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path"
+	"slices"
 	"testing"
 )
 
@@ -18,9 +19,15 @@ func TestScanGitFolders(t *testing.T) {
 		Want []string
 	}{
 		{
-			Name: "3 expected repos",
+			Name: "5 expected repos",
 			Root: path.Join(wd, "test_data"),
-			Want: []string{path.Join(wd, "test_data", "project_1"), path.Join(wd, "test_data", "project_2"), path.Join(wd, "test_data", "project_3")},
+			Want: []string{
+				path.Join(wd, "test_data", "project_1"),
+				path.Join(wd, "test_data", "project_2"),
+				path.Join(wd, "test_data", "project_3"),
+				path.Join(wd, "test_data", "project_that_has_future_commits"),
+				path.Join(wd, "test_data", "project_by_another_contributor"),
+			},
 		},
 		{
 			Name: "no expected repos",
@@ -41,8 +48,8 @@ func TestScanGitFolders(t *testing.T) {
 			}
 
 			for i := range got {
-				if got[i] != tt.Want[i] {
-					t.Fatalf("expected %s, got %s", tt.Want[i], got[i])
+				if !slices.Contains(tt.Want, got[i]) {
+					t.Fatalf("expected %q to be in %q", got[i], tt.Want)
 				}
 			}
 		})

@@ -16,12 +16,23 @@ func main() {
 	var sinceflag, untilflag string
 	flag.StringVar(&sinceflag, "since", "", "start date")
 	flag.StringVar(&untilflag, "until", "", "end date")
-	flag.StringVar(&email, "email", strings.TrimSpace(getGlobalEmailFromGit()), "you Git email")
+	flag.StringVar(&email, "email", strings.TrimSpace(getGlobalEmailFromGit()), "your Git email")
 	flag.StringVar(&path, "path", "", "folder path to scan")
 	flag.Parse()
 
 	if path == "" {
 		fmt.Fprintln(os.Stderr, color.Red.Sprintf("gitcs: please provide a folder path to scan"))
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	if !isValidFolderPath(path) {
+		fmt.Fprintln(os.Stderr, color.Red.Sprintf("gitcs: path %q is not a valid directory", path))
+		os.Exit(1)
+	}
+
+	if email == "" {
+		fmt.Fprintln(os.Stderr, color.Red.Sprintf("gitcs: could not find global Git email, please provide it using the -email flag"))
 		os.Exit(1)
 	}
 

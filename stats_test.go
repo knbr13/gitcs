@@ -1,21 +1,62 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path"
+	"sync"
 	"testing"
 	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
-func TestFillCommits(t *testing.T) {
-	now := time.Now()
-	wd, err := os.Getwd()
+func createTestRepo(t *testing.T, dir, email string, commitCount int, when time.Time) {
+	repo, err := git.PlainInit(dir, false)
 	if err != nil {
-		t.Fatalf("failed to get working directory: %v", err)
+		t.Fatalf("failed to init repo: %v", err)
 	}
 
+	w, err := repo.Worktree()
+	if err != nil {
+		t.Fatalf("failed to get worktree: %v", err)
+	}
+
+	for i := 0; i < commitCount; i++ {
+		filename := path.Join(dir, fmt.Sprintf("file_%d", i))
+		err = os.WriteFile(filename, []byte("content"), 0644)
+		if err != nil {
+			t.Fatalf("failed to write file: %v", err)
+		}
+
+		_, err = w.Add(fmt.Sprintf("file_%d", i))
+		if err != nil {
+			t.Fatalf("failed to add file: %v", err)
+		}
+
+		_, err = w.Commit("commit", &git.CommitOptions{
+			Author: &object.Signature{
+				Name:  "tester",
+				Email: email,
+				When:  when,
+			},
+		})
+		if err != nil {
+			t.Fatalf("failed to commit: %v", err)
+		}
+	}
+}
+
+func TestFillCommits(t *testing.T) {
+	tempDir := t.TempDir()
+	now := time.Now()
 	commitsDate := time.Date(now.Year(), now.Month(), now.Day(), 4, 0, 0, 0, now.Location())
 	days := daysAgo(commitsDate)
+
+	project1 := path.Join(tempDir, "project_1")
+	createTestRepo(t, project1, "tester@test.com", 3, commitsDate)
+
 	tests := []struct {
 		Name     string
 		Path     string
@@ -24,19 +65,7 @@ func TestFillCommits(t *testing.T) {
 	}{
 		{
 			Name:     "test 1",
-			Path:     path.Join(wd, "test_data", "project_1"),
-			Email:    "tester@test.com",
-			Expected: map[int]int{days: 3},
-		},
-		{
-			Name:     "test 2",
-			Path:     path.Join(wd, "test_data", "project_2"),
-			Email:    "tester@test.com",
-			Expected: map[int]int{days: 3},
-		},
-		{
-			Name:     "test 3",
-			Path:     path.Join(wd, "test_data", "project_3"),
+			Path:     project1,
 			Email:    "tester@test.com",
 			Expected: map[int]int{days: 3},
 		},
@@ -50,7 +79,8 @@ func TestFillCommits(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
 			commits := map[int]int{}
-			err = fillCommits(tt.Path, tt.Email, commits, b)
+			var mu sync.Mutex
+			err := fillCommits(tt.Path, tt.Email, commits, b, &mu)
 			if err != nil {
 				t.Fatalf("failed to fill commits in %q: %v", tt.Path, err)
 			}
@@ -67,13 +97,15 @@ func TestFillCommits(t *testing.T) {
 }
 
 func TestProcessRepos(t *testing.T) {
-	wd, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("failed to get working directory: %v", err)
-	}
-
+	tempDir := t.TempDir()
+	now := time.Now()
 	commitsDate := time.Date(now.Year(), now.Month(), now.Day(), 4, 0, 0, 0, now.Location())
 	days := daysAgo(commitsDate)
+
+	project1 := path.Join(tempDir, "project_1")
+	project2 := path.Join(tempDir, "project_2")
+	createTestRepo(t, project1, "tester@test.com", 3, commitsDate)
+	createTestRepo(t, project2, "tester@test.com", 6, commitsDate)
 
 	tests := []struct {
 		Name     string
@@ -84,9 +116,8 @@ func TestProcessRepos(t *testing.T) {
 		{
 			Name: "test 1",
 			Repos: []string{
-				path.Join(wd, "test_data", "project_1"),
-				path.Join(wd, "test_data", "project_2"),
-				path.Join(wd, "test_data", "project_3"),
+				project1,
+				project2,
 			},
 			Email:    "tester@test.com",
 			Expected: map[int]int{days: 9},
@@ -108,11 +139,11 @@ func TestProcessRepos(t *testing.T) {
 		t.Run(tt.Name, func(t *testing.T) {
 			commits := processRepos(tt.Repos, tt.Email, b)
 			if len(commits) != len(tt.Expected) {
-				t.Errorf("processRepos11() = %v, want %v", commits, tt.Expected)
+				t.Errorf("processRepos() = %v, want %v", commits, tt.Expected)
 			}
 			for k, v := range tt.Expected {
 				if commits[k] != v {
-					t.Errorf("processRepos(22) = %v, want %v", commits[k], v)
+					t.Errorf("processRepos() = %v, want %v", commits[k], v)
 				}
 			}
 		})

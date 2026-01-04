@@ -31,14 +31,16 @@ func isValidFolderPath(folder string) bool {
 var today = time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 99999999, now.Location())
 
 func daysAgo(t time.Time) int {
-	milliSeconds := int(today.Sub(t).Milliseconds()) // milliseconds to days: 1000 * 60 * 60 * 24
-	if milliSeconds < 0 {
+	// Normalize both times to midnight of their respective days in the same location
+	normalizedToday := time.Date(today.Year(), today.Month(), today.Day(), 0, 0, 0, 0, today.Location())
+	normalizedT := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, today.Location())
+
+	if normalizedT.After(normalizedToday) {
 		return -1
 	}
-	if milliSeconds/(1000*60*60) < 24 {
-		return 0
-	}
-	return milliSeconds / (1000 * 60 * 60 * 24)
+
+	diff := normalizedToday.Sub(normalizedT)
+	return int(diff.Hours() / 24)
 }
 
 func getMaxValue(m map[int]int) int {
@@ -54,8 +56,7 @@ func getMaxValue(m map[int]int) int {
 func getGlobalEmailFromGit() string {
 	localEmail, err := exec.Command("git", "config", "--global", "user.email").Output()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "gitcs: unable to retrieve your global Git email: %s", err.Error())
-		os.Exit(1)
+		return ""
 	}
 
 	return string(localEmail)

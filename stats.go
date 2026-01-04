@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-git/go-git/v5"
@@ -12,7 +12,7 @@ const sixMonthsInDays int = 182
 
 var now = time.Now()
 
-func fillCommits(path, email string, commits map[int]int, b Boundary) error {
+func fillCommits(path, email string, commits map[int]int, b Boundary, mu *sync.Mutex) error {
 	repo, err := git.PlainOpen(path)
 	if err != nil {
 		return err
@@ -32,7 +32,10 @@ func fillCommits(path, email string, commits map[int]int, b Boundary) error {
 		if days < 0 {
 			return nil
 		}
+
+		mu.Lock()
 		commits[days]++
+		mu.Unlock()
 		return nil
 	})
 	return err
@@ -40,12 +43,19 @@ func fillCommits(path, email string, commits map[int]int, b Boundary) error {
 
 func processRepos(repos []string, email string, b Boundary) map[int]int {
 	m := map[int]int{}
-	var err error
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
 	for _, repo := range repos {
-		err = fillCommits(repo, email, m, b)
-		if err != nil {
-			fmt.Printf("failed to fill commits in %q: %v", repo, err)
-		}
+		wg.Add(1)
+		go func(r string) {
+			defer wg.Done()
+			err := fillCommits(r, email, m, b, &mu)
+			if err != nil {
+				// We don't want to spam stdout during spinner
+			}
+		}(repo)
 	}
+	wg.Wait()
 	return m
 }

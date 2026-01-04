@@ -113,7 +113,7 @@ func printSummary(commits map[int]int, b Boundary) {
 	}
 	fmt.Printf("Total commits: %s between %s and %s\n",
 		color.Green.Sprintf("%d", total),
-		color.Cyan.Sprintf(b.Since.Format("2006-01-02")),
-		color.Cyan.Sprintf(b.Until.Format("2006-01-02")),
+		color.Cyan.Render(b.Since.Format("2006-01-02")),
+		color.Cyan.Render(b.Until.Format("2006-01-02")),
 	)
 }

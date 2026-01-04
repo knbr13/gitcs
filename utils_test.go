@@ -2,6 +2,8 @@ package main
 
 import (
 	"math"
+	"os"
+	"path"
 	"testing"
 	"time"
 )
@@ -43,34 +45,35 @@ func TestIsValidEmail(t *testing.T) {
 }
 
 func TestIsValidFolderPath(t *testing.T) {
+	tempDir := t.TempDir()
+	existingFolder := path.Join(tempDir, "existing")
+	if err := os.Mkdir(existingFolder, 0755); err != nil {
+		t.Fatalf("failed to create temp dir: %v", err)
+	}
+
+	existingFile := path.Join(tempDir, "file.txt")
+	if err := os.WriteFile(existingFile, []byte("test"), 0644); err != nil {
+		t.Fatalf("failed to create temp file: %v", err)
+	}
+
 	tests := []struct {
 		name     string
 		folder   string
 		expected bool
 	}{
 		{
-			name:     "valid folder#1",
-			folder:   "./test_data",
-			expected: true,
-		},
-		{
-			name:     "valid folder#2",
-			folder:   "./test_data/project_1",
-			expected: true,
-		},
-		{
-			name:     "valid folder#2",
-			folder:   "./test_data/project_3",
+			name:     "valid folder",
+			folder:   existingFolder,
 			expected: true,
 		},
 		{
 			name:     "non-existent folder",
-			folder:   "/path/to/non-existent/folder",
+			folder:   path.Join(tempDir, "non-existent"),
 			expected: false,
 		},
 		{
-			name:     "file",
-			folder:   "./test_data/project_1/main.go",
+			name:     "file instead of folder",
+			folder:   existingFile,
 			expected: false,
 		},
 	}

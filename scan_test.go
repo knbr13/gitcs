@@ -31,8 +31,8 @@ func TestScanGitFolders(t *testing.T) {
 			},
 		},
 		{
-			Name: "no expected repos",
-			Root: path.Join(wd, ".github"),
+			Name: "no expected repos in empty dir",
+			Root: t.TempDir(),
 			Want: []string{},
 		},
 		{
@@ -57,7 +57,7 @@ func TestScanGitFolders(t *testing.T) {
 			}
 
 			if len(got) != len(tt.Want) {
-				t.Fatalf("expected %d git folders, got %d", len(tt.Want), len(got))
+				t.Fatalf("expected %d git folders, got %d: %v", len(tt.Want), len(got), got)
 			}
 
 			for i := range got {

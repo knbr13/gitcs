@@ -18,6 +18,16 @@ func main() {
 	flag.StringVar(&untilflag, "until", "", "end date")
 	flag.StringVar(&email, "email", strings.TrimSpace(getGlobalEmailFromGit()), "your Git email")
 	flag.StringVar(&path, "path", "", "folder path to scan")
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
+		fmt.Fprintf(flag.CommandLine.Output(), "\nRequired flags:\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  -path string\n\tfolder path to scan\n")
+
+		fmt.Fprintf(flag.CommandLine.Output(), "\nOptional flags:\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  -email string\n\tyour Git email (default %q)\n", strings.TrimSpace(getGlobalEmailFromGit()))
+		fmt.Fprintf(flag.CommandLine.Output(), "  -since string\n\tstart date (default 6 months ago)\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  -until string\n\tend date (default today)\n")
+	}
 	flag.Parse()
 
 	if path == "" {

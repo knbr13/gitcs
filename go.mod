@@ -1,4 +1,4 @@
-module github.com/knbr13/gitcs
+module github.com/aladdin-io/gitcs
 
 go 1.25.5
 

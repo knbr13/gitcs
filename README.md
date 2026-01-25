@@ -1,6 +1,6 @@
 # gitcs
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/knbr13/gitcs)](https://goreportcard.com/report/github.com/knbr13/gitcs)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aladdin-io/gitcs)](https://goreportcard.com/report/github.com/aladdin-io/gitcs)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)  
 
 Git Commits Visualizer (`gitcs` shortly) is a command-line tool that allows developers to analyze their local Git repositories and generate a visual contributions graph. This tool proves valuable for developers working across multiple Git services like GitHub and GitLab (because there are already graphs provided online by each of them, but each has it's own data, this tool works locally, so no matter where you've pushed the project, commits will count), enabling them to visualize contributions seamlessly, even in offline or disconnected environments.
@@ -18,7 +18,7 @@ Ensure that you have Go installed on your machine before installing this tool. E
 
 
 ```bash
-  go install github.com/knbr13/gitcs@latest
+  go install github.com/aladdin-io/gitcs@latest
 ```
 
 Alternatively, if you don't have Go installed, download the latest release from this repository.
@@ -59,4 +59,4 @@ Contributions are welcome! If you would like to contribute to this project, plea
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/knbr13/gitcs/blob/main/LICENSE). See the [LICENSE](https://github.com/knbr13/gitcs/blob/main/LICENSE) file for details.
+This project is licensed under the [MIT License](https://github.com/aladdin-io/gitcs/blob/main/LICENSE). See the [LICENSE](https://github.com/aladdin-io/gitcs/blob/main/LICENSE) file for details.

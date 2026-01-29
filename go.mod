@@ -1,4 +1,4 @@
-module github.com/aladdin-io/gitcs
+module github.com/hrtsegv/gitcs
 
 go 1.25.5
 

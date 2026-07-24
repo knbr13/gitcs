@@ -6,11 +6,6 @@ Git Commits Visualizer (`gitcs` shortly) is a command-line tool that allows deve
 
 ![gitcs](./gitcs.gif)
 
-## Dependencies
-
-- Go
-- Git
-
 ## Installation
 
 Ensure that you have Go installed on your machine before installing this tool. Execute the following command:

@@ -12,6 +12,12 @@ import (
 )
 
 func main() {
+
+	if len(os.Args) > 1 && os.Args[1] == "map" {
+		runMap()
+		return
+	}
+
 	var email, path string
 	var sinceflag, untilflag string
 	flag.StringVar(&sinceflag, "since", "", "start date")

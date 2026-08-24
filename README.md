@@ -29,9 +29,11 @@ cd ..
 go run . map
 ```
 
-The map is served only on `127.0.0.1:7331`. Use `go run . map --terminal`
-to keep using the terminal interface. Release builds produced by `make build`
-embed the browser UI, so Node is not required on the machine running `gitcs`.
+The map is served only on `127.0.0.1:7331`. Release builds produced by
+`make build` embed the browser UI, so Node is not required on the machine
+running `gitcs`. The browser UI has three live views: current relevant changes,
+all source-code connections, and live progress/status as the local watcher
+rebuilds the map.
 
 The basic usage of this tool is to just run it, it will generate a graph of commits from the last 6 months.
 ```bash
@@ -46,6 +48,16 @@ These commits are committed by your global Git email address, but you can also u
 If you want to include commits from **all** authors (regardless of email), pass a wildcard:
 ```bash
 > gitcs -email "*" -path "/home/user/dev"
+```
+
+If you want to see how the total work progressed over time, add the `-progress` flag:
+```bash
+> gitcs -path "/home/user/dev" -progress
+```
+
+If you want a weekly bar chart of commit history, add the `-bars` flag:
+```bash
+> gitcs -path "/home/user/dev" -bars
 ```
 
 By default, the tool displays commits from the last 6 months, but you can configure this using the `since` and `until` flags.

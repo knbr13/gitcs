@@ -23,17 +23,23 @@ func main() {
 
 	var email, path string
 	var sinceflag, untilflag string
+	var showBars bool
+	var showProgress bool
 	flag.StringVar(&sinceflag, "since", "", "start date")
 	flag.StringVar(&untilflag, "until", "", "end date")
 	flag.StringVar(&email, "email", strings.TrimSpace(getGlobalEmailFromGit()), "your Git email")
 	flag.StringVar(&path, "path", "", "folder path to scan")
+	flag.BoolVar(&showBars, "bars", false, "show weekly commit history bar chart")
+	flag.BoolVar(&showProgress, "progress", false, "show cumulative commit progression")
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n", os.Args[0])
 		fmt.Fprintf(flag.CommandLine.Output(), "\nRequired flags:\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  -path string\n\tfolder path to scan\n")
 
 		fmt.Fprintf(flag.CommandLine.Output(), "\nOptional flags:\n")
+		fmt.Fprintf(flag.CommandLine.Output(), "  -bars\n\tshow weekly commit history bar chart\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  -email string\n\tyour Git email (default %q)\n", strings.TrimSpace(getGlobalEmailFromGit()))
+		fmt.Fprintf(flag.CommandLine.Output(), "  -progress\n\tshow cumulative commit progression\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  -since string\n\tstart date (default 6 months ago)\n")
 		fmt.Fprintf(flag.CommandLine.Output(), "  -until string\n\tend date (default today)\n")
 	}
@@ -82,6 +88,14 @@ func main() {
 	commits := processRepos(repos, email, *b)
 	fmt.Print("\n\n")
 	printTable(commits, *b)
+	if showBars {
+		fmt.Print("\n")
+		printCommitBars(commits, *b)
+	}
+	if showProgress {
+		fmt.Print("\n")
+		printProgression(commits, *b)
+	}
 	fmt.Print("\n\n")
 }
 
@@ -89,10 +103,7 @@ func runMapCommand(arguments []string) error {
 	if len(arguments) == 0 {
 		return runWebMap()
 	}
-	if len(arguments) == 1 && arguments[0] == "--terminal" {
-		return runTerminalMap()
-	}
-	return fmt.Errorf("unknown option %q (supported: --terminal)", strings.Join(arguments, " "))
+	return fmt.Errorf("unknown option %q", strings.Join(arguments, " "))
 }
 
 type Boundary struct {

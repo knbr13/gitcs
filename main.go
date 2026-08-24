@@ -14,7 +14,10 @@ import (
 func main() {
 
 	if len(os.Args) > 1 && os.Args[1] == "map" {
-		runMap()
+		if err := runMapCommand(os.Args[2:]); err != nil {
+			fmt.Fprintln(os.Stderr, color.Red.Sprintf("gitcs map: %s", err))
+			os.Exit(1)
+		}
 		return
 	}
 
@@ -80,6 +83,16 @@ func main() {
 	fmt.Print("\n\n")
 	printTable(commits, *b)
 	fmt.Print("\n\n")
+}
+
+func runMapCommand(arguments []string) error {
+	if len(arguments) == 0 {
+		return runWebMap()
+	}
+	if len(arguments) == 1 && arguments[0] == "--terminal" {
+		return runTerminalMap()
+	}
+	return fmt.Errorf("unknown option %q (supported: --terminal)", strings.Join(arguments, " "))
 }
 
 type Boundary struct {

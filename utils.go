@@ -6,6 +6,7 @@ import (
 	"net/mail"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -60,6 +61,14 @@ func getGlobalEmailFromGit() string {
 	}
 
 	return string(localEmail)
+}
+
+func getRepoEmailFromGit(root string) string {
+	email, err := exec.Command("git", "-C", root, "config", "user.email").Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(email))
 }
 
 func setTimeFlags(sinceflag, untilflag string) (*Boundary, error) {

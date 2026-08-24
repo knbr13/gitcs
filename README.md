@@ -19,6 +19,20 @@ Alternatively, if you don't have Go installed, download the latest release from 
 
 ## Usage
 
+### Live repository map
+
+Build the browser UI once during development, then start the local map:
+
+```bash
+cd frontend && npm install && npm run build
+cd ..
+go run . map
+```
+
+The map is served only on `127.0.0.1:7331`. Use `go run . map --terminal`
+to keep using the terminal interface. Release builds produced by `make build`
+embed the browser UI, so Node is not required on the machine running `gitcs`.
+
 The basic usage of this tool is to just run it, it will generate a graph of commits from the last 6 months.
 ```bash
 > gitcs -path "/home/user/dev"

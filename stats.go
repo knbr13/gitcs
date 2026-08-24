@@ -59,3 +59,32 @@ func processRepos(repos []string, email string, b Boundary) map[int]int {
 	wg.Wait()
 	return m
 }
+
+func readRepoActivity(
+	repo *git.Repository,
+	email string,
+	boundary Boundary,
+) (map[int]int, error) {
+	commitIterator, err := repo.Log(&git.LogOptions{
+		Since: &boundary.Since,
+		Until: &boundary.Until,
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer commitIterator.Close()
+
+	var commits []activityCommit
+	err = commitIterator.ForEach(func(commit *object.Commit) error {
+		commits = append(commits, activityCommit{
+			When:  commit.Author.When,
+			Email: commit.Author.Email,
+		})
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return aggregateRepoActivity(commits, email, boundary), nil
+}

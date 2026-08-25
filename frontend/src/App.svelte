@@ -17,6 +17,9 @@
   let connected = false;
   let notice = '';
   let activityLog = [];
+  // Positions the user dragged by hand. Everything else is re-laid out on
+  // every render so cards cannot pile up.
+  let pinnedPositions = new Map();
   const viewOptions = [
     { id: 'calls', label: 'What calls what' },
     { id: 'changes', label: 'Changes together' },
@@ -44,6 +47,7 @@
   $: dependsOn = relatedNodes('out');
   $: usedBy = relatedNodes('in');
   $: connectedFiles = [...dependsOn, ...usedBy].slice(0, 4);
+  $: selectedLabel = selected?.label ?? 'this file';
 
   function reviewGraph(apiNodes, apiEdges) {
     let roots = apiNodes.filter((node) => node.isRoot);
@@ -180,92 +184,283 @@
     return (roots.length ? roots : categoryNodes.slice(0, 4)).slice(0, 6);
   }
 
-  function layoutNodes(apiNodes, apiEdges) {
-    const previousPositions = new Map(nodes.map((node) => [node.id, node.position]));
-    const incoming = new Map(apiNodes.map((node) => [node.id, 0]));
+  // --- Layout -------------------------------------------------------------
+  // Cards are laid out in columns by dependency depth. Every card's height is
+  // estimated from its own content, and a column stacks by accumulated height,
+  // so two cards can never land on top of each other.
+
+  const CARD_WIDTH = 230;
+  const SCOPE_CARD_WIDTH = 250;
+  const COLUMN_GAP = 96;
+  const ROW_GAP = 30;
+  const MAX_COLUMN_HEIGHT = 1500;
+
+  function isScopeId(id) {
+    return String(id ?? '').startsWith('__');
+  }
+
+  function cardWidth(node) {
+    return isScopeId(node.id) ? SCOPE_CARD_WIDTH : CARD_WIDTH;
+  }
+
+  // Mirrors CodeCard.svelte: padding + topline + title + 2-line clamped
+  // description + activity rail, plus a diff row when the file is changing.
+  // Calibrated against rendered cards: a one-line title measures 123px, and a
+  // diff row adds 20px. Titles wrap at ~26 characters inside a 230px card.
+  // SAFETY_PAD absorbs font differences across machines -- this estimate must
+  // never come in under the real height, or cards overlap again.
+  const CARD_BASE_HEIGHT = 119;
+  const TITLE_LINE_HEIGHT = 19;
+  const DIFF_ROW_HEIGHT = 20;
+  const SAFETY_PAD = 8;
+
+  function cardHeight(node) {
+    if (isScopeId(node.id)) return 132;
+    const titleLines = Math.min(2, Math.ceil(String(node.label ?? '').length / 26) || 1);
+    return (
+      CARD_BASE_HEIGHT +
+      (titleLines - 1) * TITLE_LINE_HEIGHT +
+      (node.change ? DIFF_ROW_HEIGHT : 0) +
+      SAFETY_PAD
+    );
+  }
+
+  function buildAdjacency(apiNodes, apiEdges) {
+    const incoming = new Map(apiNodes.map((node) => [node.id, []]));
     const outgoing = new Map(apiNodes.map((node) => [node.id, []]));
-
-    for (const edge of apiEdges.filter((edge) => edge.kind !== 'bridge')) {
-      incoming.set(edge.to, (incoming.get(edge.to) ?? 0) + 1);
-      outgoing.get(edge.from)?.push(edge.to);
+    for (const edge of apiEdges) {
+      if (edge.kind === 'bridge') continue;
+      if (!outgoing.has(edge.from) || !incoming.has(edge.to)) continue;
+      outgoing.get(edge.from).push(edge.to);
+      incoming.get(edge.to).push(edge.from);
     }
+    return { incoming, outgoing };
+  }
 
-    const roots = apiNodes.filter((node) => node.isRoot).map((node) => node.id);
+  function assignDepths(apiNodes, outgoing, incoming) {
+    let roots = apiNodes.filter((node) => node.isRoot).map((node) => node.id);
     if (roots.length === 0) {
-      roots.push(...apiNodes.filter((node) => incoming.get(node.id) === 0).map((node) => node.id));
+      roots = apiNodes.filter((node) => (incoming.get(node.id) ?? []).length === 0).map((node) => node.id);
     }
-    if (roots.length === 0 && apiNodes[0]) roots.push(apiNodes[0].id);
+    if (roots.length === 0 && apiNodes[0]) roots = [apiNodes[0].id];
 
     const depths = new Map();
     const queue = roots.map((id) => ({ id, depth: 0 }));
     for (let index = 0; index < queue.length; index += 1) {
-      const current = queue[index];
-      if (depths.has(current.id)) continue;
-      depths.set(current.id, current.depth);
-      for (const child of outgoing.get(current.id) ?? []) {
-        if (!depths.has(child)) queue.push({ id: child, depth: current.depth + 1 });
+      const { id, depth } = queue[index];
+      if (depths.has(id)) continue;
+      depths.set(id, depth);
+      for (const child of outgoing.get(id) ?? []) {
+        if (!depths.has(child)) queue.push({ id: child, depth: depth + 1 });
       }
     }
 
-    const fallbackDepth = Math.max(0, ...depths.values()) + 1;
-    const nodesByDepth = new Map();
+    // Anything the walk never reached still needs a home; give it a column of
+    // its own past the deepest reachable one rather than dropping it at 0.
+    const orphanDepth = Math.max(0, ...depths.values()) + 1;
     for (const node of apiNodes) {
-      const depth = depths.get(node.id) ?? fallbackDepth;
-      const level = nodesByDepth.get(depth) ?? [];
-      level.push(node);
-      nodesByDepth.set(depth, level);
+      if (!depths.has(node.id)) depths.set(node.id, orphanDepth);
+    }
+    return depths;
+  }
+
+  // Order each column by the average position of the parents already placed to
+  // its left. Children end up next to their parents, which removes most of the
+  // edge crossings that made the old grid unreadable.
+  function orderByBarycenter(column, placedRows, incoming) {
+    const scored = column.map((node, index) => {
+      const parents = (incoming.get(node.id) ?? [])
+        .map((parentId) => placedRows.get(parentId))
+        .filter((row) => row !== undefined);
+      const barycenter = parents.length
+        ? parents.reduce((sum, row) => sum + row, 0) / parents.length
+        : Number.POSITIVE_INFINITY;
+      return { node, index, barycenter };
+    });
+    scored.sort((left, right) => left.barycenter - right.barycenter || left.index - right.index);
+    return scored.map((entry) => entry.node);
+  }
+
+  // A column taller than the viewport can hold becomes several side-by-side
+  // strips instead of one endless stack.
+  function splitIntoStrips(column) {
+    const strips = [[]];
+    let height = 0;
+    for (const node of column) {
+      const nodeHeight = cardHeight(node) + ROW_GAP;
+      if (height + nodeHeight > MAX_COLUMN_HEIGHT && strips[strips.length - 1].length) {
+        strips.push([]);
+        height = 0;
+      }
+      strips[strips.length - 1].push(node);
+      height += nodeHeight;
+    }
+    return strips;
+  }
+
+  function layoutNodes(apiNodes, apiEdges) {
+    const { incoming, outgoing } = buildAdjacency(apiNodes, apiEdges);
+    const depths = assignDepths(apiNodes, outgoing, incoming);
+
+    const byDepth = new Map();
+    for (const node of apiNodes) {
+      const depth = depths.get(node.id) ?? 0;
+      if (!byDepth.has(depth)) byDepth.set(depth, []);
+      byDepth.get(depth).push(node);
     }
 
-    const result = [];
-    const horizontalGap = 320;
-    const verticalGap = 155;
-    for (const [depth, level] of [...nodesByDepth.entries()].sort(([left], [right]) => left - right)) {
-      level.forEach((node, index) => {
-        const isScopeNode = String(node.id).startsWith('__');
-        result.push({
-          id: node.id,
-          type: 'code',
-          data: node,
-          position: previousPositions.get(node.id) ?? {
-            x: isScopeNode ? 0 : (depth + 1) * horizontalGap,
-            y: isScopeNode ? (node.id === '__frontend__' ? 0 : 190) : index * verticalGap
-          },
-          ariaLabel: `${node.label}: ${node.description}`
-        });
-      });
+    const positions = new Map();
+    const placedRows = new Map();
+    let x = 0;
+
+    for (const [, column] of [...byDepth.entries()].sort(([left], [right]) => left - right)) {
+      const ordered = orderByBarycenter(column, placedRows, incoming);
+      for (const strip of splitIntoStrips(ordered)) {
+        const stripHeight =
+          strip.reduce((sum, node) => sum + cardHeight(node), 0) + Math.max(0, strip.length - 1) * ROW_GAP;
+        const stripWidth = Math.max(...strip.map(cardWidth));
+
+        let y = -stripHeight / 2;
+        for (const node of strip) {
+          // Narrow cards sit centred inside a column sized by its widest card.
+          positions.set(node.id, { x: x + (stripWidth - cardWidth(node)) / 2, y });
+          placedRows.set(node.id, y + cardHeight(node) / 2);
+          y += cardHeight(node) + ROW_GAP;
+        }
+        x += stripWidth + COLUMN_GAP;
+      }
     }
-    return result;
+
+    return apiNodes.map((node) => ({
+      id: node.id,
+      type: 'code',
+      data: node,
+      // Drive the card highlight from our own selection, not the flow's, so the
+      // highlighted card always matches the file in the inspector.
+      selected: node.id === selectedId,
+      // Only a card the user dragged keeps its manual spot; everything else is
+      // re-laid out, so a view change can never drop new cards onto old ones.
+      position: pinnedPositions.get(node.id) ?? positions.get(node.id) ?? { x: 0, y: 0 },
+      ariaLabel: `${node.label}: ${node.description}`
+    }));
   }
+
+  // --- Connection strength -------------------------------------------------
+  // How often two files were committed together. This is the number the edge
+  // thickness encodes, and the only honest answer to "how connected are these".
+
+  let commitSets = new Map();
+
+  function rebuildCommitSets(apiNodes) {
+    commitSets = new Map(
+      apiNodes.map((node) => [node.id, new Set(node.activity?.commitHashes ?? [])])
+    );
+  }
+
+  function coChangeCount(fromId, toId) {
+    const from = commitSets.get(fromId);
+    const to = commitSets.get(toId);
+    if (!from || !to || from.size === 0 || to.size === 0) return 0;
+    const [small, large] = from.size <= to.size ? [from, to] : [to, from];
+    let shared = 0;
+    for (const hash of small) if (large.has(hash)) shared += 1;
+    return shared;
+  }
+
+  // Three named tiers so the legend can label what a thickness means.
+  function strengthTier(count) {
+    if (count >= 5) return 'strong';
+    if (count >= 2) return 'medium';
+    return 'weak';
+  }
+
+  function edgeRelation(edge) {
+    if (!selectedId) return 'neutral';
+    if (edge.from === selectedId) return 'outgoing';
+    if (edge.to === selectedId) return 'incoming';
+    return 'unrelated';
+  }
+
+  function edgeKindClass(kind) {
+    return `${edgeKindKey(kind)}-edge`;
+  }
+
+  // Colour carries the kind of connection and never changes with selection, so
+  // a line means something on its own before you click anything. Selection only
+  // adds emphasis (glow) or removes it (dim) -- it never repaints a line.
+  const KIND_COLORS = {
+    code: '#4aa8c9',
+    indirect: '#9b7fc4',
+    bridge: '#d4923c',
+    category: '#41647a'
+  };
+
+  function edgeKindKey(kind) {
+    if (kind === 'indirect') return 'indirect';
+    if (kind === 'bridge') return 'bridge';
+    if (kind === 'category') return 'category';
+    return 'code';
+  }
+
+  const RELATION_PAINT_ORDER = { unrelated: 0, neutral: 1, incoming: 2, outgoing: 3 };
 
   function renderGraph(nextGraph = graph) {
     if (!nextGraph) return;
     const review = visibleGraph(nextGraph.nodes, nextGraph.edges);
-    nodes = layoutNodes(review.nodes, review.edges);
-    edges = review.edges.map((edge) => ({
-      id: `${edge.from}:${edge.to}:${edge.kind}`,
-      source: edge.from,
-      target: edge.to,
-      type: 'bezier',
-      interactionWidth: 28,
-      class: [
-        edge.kind === 'indirect' ? 'indirect-edge' : edge.kind === 'bridge' ? 'bridge-edge' : edge.kind === 'category' ? 'category-edge' : 'code-edge',
-        selectedId && (edge.from === selectedId || edge.to === selectedId) ? 'active-edge' : ''
-      ].filter(Boolean).join(' ')
-    }));
+
+    // Resolve the selection first: both the card highlight and every edge
+    // colour depend on it, so it has to settle before either is built.
     if (!review.nodes.some((node) => node.id === selectedId)) {
       selectedId = review.nodes.find((node) => node.change)?.id ?? review.nodes[0]?.id ?? '';
     }
+
+    rebuildCommitSets(nextGraph.nodes);
+    nodes = layoutNodes(review.nodes, review.edges);
+
+    edges = review.edges
+      .map((edge) => {
+        const relation = edgeRelation(edge);
+        const structural = edge.kind === 'category' || edge.kind === 'bridge';
+        const coChange = structural ? 0 : coChangeCount(edge.from, edge.to);
+        return {
+          id: `${edge.from}:${edge.to}:${edge.kind}`,
+          source: edge.from,
+          target: edge.to,
+          type: 'default',
+          interactionWidth: 24,
+          // Structural lines group the map; they are not dependencies, so they
+          // get no arrowhead and no strength.
+          markerEnd: structural
+            ? undefined
+            : { type: 'arrowclosed', width: 13, height: 13, color: KIND_COLORS[edgeKindKey(edge.kind)] },
+          class: `${edgeKindClass(edge.kind)} strength-${strengthTier(coChange)} rel-${relation}`,
+          data: { coChange, relation, kind: edge.kind },
+          relation
+        };
+      })
+      // Draw dimmed lines first and the selected file's lines last, so the
+      // highlighted path is never buried under the rest of the graph.
+      .sort((left, right) => RELATION_PAINT_ORDER[left.relation] - RELATION_PAINT_ORDER[right.relation]);
   }
 
   function setView(nextView) {
     view = nextView;
+    // A different graph gets a fresh layout; keeping hand-dragged spots from the
+    // previous one is what used to drop new cards on top of old ones.
+    pinnedPositions = new Map();
     renderGraph();
   }
 
   function setScope(nextScope) {
     scope = nextScope;
     selectedId = '';
+    pinnedPositions = new Map();
     renderGraph();
+  }
+
+  function handleNodeDragStop({ targetNode }) {
+    if (!targetNode) return;
+    pinnedPositions.set(targetNode.id, { ...targetNode.position });
   }
 
   function addActivity(message) {
@@ -445,10 +640,27 @@
       {#if notice}<div class="notice" role="status">{notice}</div>{/if}
 
       <section class="map-shell" aria-label="Repository code map">
-        <div class="map-legend" aria-label="Connection colors">
-          <span><i class="direct"></i>code link</span>
-          <span><i class="bridge"></i>frontend/backend</span>
-          <span><i class="related"></i>collapsed path</span>
+        <div class="map-legend" aria-label="How to read the connections">
+          <div class="legend-row">
+            <span class="legend-title">An arrow points from a file to what it uses</span>
+          </div>
+          <div class="legend-row">
+            <span><i class="swatch code"></i>uses directly</span>
+            <span><i class="swatch indirect"></i>uses via files not shown</span>
+          </div>
+          <div class="legend-row">
+            <span><i class="swatch bridge"></i>frontend ↔ backend</span>
+            <span><i class="swatch category"></i>grouping, not a dependency</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-label">changed together:</span>
+            <span><i class="gauge weak"></i>rarely</span>
+            <span><i class="gauge medium"></i>sometimes</span>
+            <span><i class="gauge strong"></i>often</span>
+          </div>
+          {#if selected}
+            <div class="legend-row legend-foot">Lit lines are {selectedLabel}'s own connections</div>
+          {/if}
         </div>
         {#if loading}
           <div class="loading">Building the repository map...</div>
@@ -464,6 +676,7 @@
             minZoom={0.32}
             maxZoom={1.8}
             onnodeclick={handleNodeClick}
+            onnodedragstop={handleNodeDragStop}
             nodesConnectable={false}
             deleteKey={null}
             proOptions={{ hideAttribution: true }}
@@ -591,12 +804,24 @@
   .notice { padding: 9px 22px; color: #f6c56e; background: #211a10; font-size: 0.8rem; }
   .map-shell { position: relative; min-height: 0; background: radial-gradient(circle at 1px 1px, #132130 1px, transparent 0) 0 0 / 36px 36px, #0b1119; overflow: hidden; }
   .loading { position: absolute; inset: 0; display: grid; place-items: center; color: #708898; z-index: 2; }
-  .map-legend { position: absolute; left: 16px; top: 16px; z-index: 4; gap: 12px; padding: 8px 10px; border: 1px solid #17283a; border-radius: 8px; color: #76889b; background: rgba(8, 14, 21, 0.84); font-size: 0.72rem; pointer-events: none; }
+  .map-legend { position: absolute; left: 16px; top: 16px; z-index: 4; display: grid; gap: 6px; padding: 10px 12px; border: 1px solid #17283a; border-radius: 9px; color: #8b9dae; background: rgba(8, 14, 21, 0.88); backdrop-filter: blur(12px); font-size: 0.71rem; pointer-events: none; max-width: 340px; }
+  .legend-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+  .legend-title { color: #b6c6d4; font-weight: 700; }
   .map-legend span { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-  .map-legend i { width: 18px; height: 3px; border-radius: 999px; }
-  .map-legend .direct { background: #37c4ee; }
-  .map-legend .bridge { background: #d49a3c; }
-  .map-legend .related { background: repeating-linear-gradient(90deg, #7d8794 0 5px, transparent 5px 9px); }
+  .map-legend i { flex: none; width: 20px; border-radius: 999px; }
+  .map-legend .swatch { height: 3px; }
+  /* Swatches mirror the real canvas colours and dash patterns exactly. */
+  .map-legend .code { background: #4aa8c9; }
+  .map-legend .indirect { background: repeating-linear-gradient(90deg, #9b7fc4 0 7px, transparent 7px 12px); }
+  .map-legend .bridge { background: repeating-linear-gradient(90deg, #d4923c 0 2px, transparent 2px 7px); }
+  .map-legend .category { background: #41647a; }
+  .legend-label { color: #6f8194; }
+  .legend-foot { color: #6f8194; }
+  /* The gauge swatches mirror the three real stroke widths on the canvas. */
+  .map-legend .gauge { background: #8ba0b2; }
+  .map-legend .weak { height: 2px; }
+  .map-legend .medium { height: 3px; }
+  .map-legend .strong { height: 4px; }
   .timeline { min-height: 0; padding: 13px 18px 16px; border-top: 1px solid #172332; background: #081018; overflow: hidden; }
   .timeline-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
   .timeline-head em { color: #596b7f; font: 0.7rem ui-monospace, Consolas, monospace; font-style: normal; }
@@ -643,12 +868,44 @@
   .open-button { width: calc(100% - 44px); margin: 22px 22px; border: 0; border-radius: 8px; padding: 9px 12px; color: #061018; background: #67e8f9; font-weight: 800; cursor: pointer; }
   button:disabled { opacity: 0.45; cursor: not-allowed; }
   :global(.svelte-flow) { background: transparent; }
-  :global(.svelte-flow__edge-path) { stroke: rgba(73, 96, 114, 0.3); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; filter: none; }
-  :global(.svelte-flow__edge.active-edge .svelte-flow__edge-path) { stroke: #37c4ee; stroke-width: 2.6; filter: drop-shadow(0 0 7px rgba(55, 196, 238, 0.42)); }
-  :global(.svelte-flow__edge.category-edge .svelte-flow__edge-path) { stroke: rgba(55, 196, 238, 0.38); stroke-width: 1.7; }
-  :global(.svelte-flow__edge.bridge-edge .svelte-flow__edge-path) { stroke: #d49a3c; stroke-width: 2.3; filter: drop-shadow(0 0 6px rgba(212, 154, 60, 0.34)); }
-  :global(.svelte-flow__edge.indirect-edge .svelte-flow__edge-path) { stroke: rgba(151, 122, 76, 0.34); stroke-width: 1.3; stroke-dasharray: 7 10; }
-  :global(.svelte-flow__edge.indirect-edge.active-edge .svelte-flow__edge-path) { stroke: #d49a3c; filter: drop-shadow(0 0 7px rgba(212, 154, 60, 0.38)); }
+  /* An edge says four things: which way it points (arrowhead), how strongly the
+     two files are coupled (width), how it relates to the selected file (colour),
+     and whether the link is direct or collapsed (solid vs dashed). */
+  :global(.svelte-flow__edge-path) {
+    stroke: var(--edge-color, #6d879d);
+    stroke-width: var(--edge-width, 1.6);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 160ms ease, stroke-width 160ms ease, opacity 160ms ease;
+  }
+
+  /* Width = how often the two files are committed together. */
+  :global(.svelte-flow__edge.strength-weak) { --edge-width: 1.6; }
+  :global(.svelte-flow__edge.strength-medium) { --edge-width: 2.6; }
+  :global(.svelte-flow__edge.strength-strong) { --edge-width: 4; }
+
+  /* Colour = what kind of connection this is. Fixed, so every line reads on its
+     own with nothing selected. */
+  :global(.svelte-flow__edge.code-edge) { --edge-color: #4aa8c9; }
+  :global(.svelte-flow__edge.indirect-edge) { --edge-color: #9b7fc4; }
+  :global(.svelte-flow__edge.bridge-edge) { --edge-color: #d4923c; --edge-width: 2.4; }
+  :global(.svelte-flow__edge.category-edge) { --edge-color: #41647a; --edge-width: 1.4; }
+
+  /* Dash pattern = the link is not a direct reference. */
+  :global(.svelte-flow__edge.indirect-edge .svelte-flow__edge-path) { stroke-dasharray: 7 9; }
+  :global(.svelte-flow__edge.bridge-edge .svelte-flow__edge-path) { stroke-dasharray: 2 7; }
+
+  /* Selection only changes emphasis, never colour: the file's own links glow,
+     the rest recede. Direction stays readable from the arrowheads. */
+  :global(.svelte-flow__edge.rel-neutral) { opacity: 0.82; }
+  :global(.svelte-flow__edge.rel-unrelated) { opacity: 0.14; }
+  :global(.svelte-flow__edge.rel-outgoing),
+  :global(.svelte-flow__edge.rel-incoming) { opacity: 1; }
+  :global(.svelte-flow__edge.rel-outgoing .svelte-flow__edge-path),
+  :global(.svelte-flow__edge.rel-incoming .svelte-flow__edge-path) {
+    stroke-width: calc(var(--edge-width, 1.6) + 1px);
+    filter: drop-shadow(0 0 7px color-mix(in srgb, var(--edge-color) 55%, transparent));
+  }
   :global(.svelte-flow__edge-text), :global(.svelte-flow__edge-textbg) { display: none; }
   :global(.svelte-flow__controls) { border: 1px solid #1d3143; border-radius: 8px; overflow: hidden; box-shadow: none; }
   :global(.svelte-flow__controls-button) { border: 0; border-bottom: 1px solid #1d3143; color: #a7bfce; background: #0f1b27; }

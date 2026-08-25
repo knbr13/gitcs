@@ -72,7 +72,15 @@ type mapFileActivity struct {
 	People        int                 `json:"people"`
 	LastChangedAt *time.Time          `json:"lastChangedAt,omitempty"`
 	RecentCommits []mapCommitResponse `json:"recentCommits"`
+	// CommitHashes carries more history than RecentCommits so the map can
+	// measure how often two files were committed together. Hashes only, to
+	// keep the payload small.
+	CommitHashes []string `json:"commitHashes"`
 }
+
+// coChangeHistoryDepth bounds how far back we collect commit hashes per file.
+// Deep enough for a meaningful co-change signal, shallow enough to stay small.
+const coChangeHistoryDepth = 60
 
 type mapActivityBucket struct {
 	Start time.Time `json:"start"`
@@ -411,6 +419,9 @@ func readMapFileActivity(repo *git.Repository, path string, now time.Time) mapFi
 				Author:  commit.Author.Name,
 				When:    commit.Author.When,
 			})
+		}
+		if len(activity.CommitHashes) < coChangeHistoryDepth {
+			activity.CommitHashes = append(activity.CommitHashes, shortHash(commit.Hash.String()))
 		}
 		return nil
 	})

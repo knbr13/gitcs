@@ -1,6 +1,9 @@
 name: Create Release
 
 on:
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       tag_name:
@@ -10,29 +13,51 @@ on:
         description: 'Release name'
         required: true
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v6
+      with:
+        ref: ${{ inputs.tag_name || github.ref }}
 
     - name: Set up Go
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@v6
       with:
-        go-version: '1.21.6'
+        go-version-file: go.mod
+
+    - name: Set up Node
+      uses: actions/setup-node@v6
+      with:
+        node-version: '24'
+        cache: npm
+        cache-dependency-path: frontend/package-lock.json
 
     - name: Build and Release
       run: |
         make all
 
+    - name: Check embedded binary
+      run: |
+        cd "$(mktemp -d)"
+        "$GITHUB_WORKSPACE/bin/gitcs_linux_amd64" -help
+
+    - name: Generate checksums
+      working-directory: bin
+      run: sha256sum gitcs_* > checksums.txt
+
     - name: GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v3
       with:
         files: |
           bin/*
-        tag_name: ${{ github.event.inputs.tag_name }}
-        name: ${{ github.event.inputs.release_name }}
+        tag_name: ${{ inputs.tag_name || github.ref_name }}
+        name: ${{ inputs.release_name || github.ref_name }}
+        fail_on_unmatched_files: true
+        generate_release_notes: true
         draft: false
-        token: ${{ secrets.RELEASE_TOKEN }}

@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -158,5 +159,113 @@ func TestPrintTable(t *testing.T) {
 
 	if len(dat) == 0 {
 		t.Error("Expected some output from printTable, got nothing")
+	}
+}
+
+func TestBuildProgression(t *testing.T) {
+	end := startOfDay(today)
+	start := end.AddDate(0, 0, -13)
+	commits := map[int]int{
+		daysAgo(start):                  2,
+		daysAgo(start.AddDate(0, 0, 6)): 1,
+		daysAgo(start.AddDate(0, 0, 8)): 3,
+	}
+	b := Boundary{
+		Since: start,
+		Until: end,
+	}
+
+	points := buildProgression(commits, b, 7)
+	if len(points) != 2 {
+		t.Fatalf("buildProgression() returned %d points, want 2", len(points))
+	}
+
+	if points[0].Commits != 3 || points[0].Cumulative != 3 || points[0].Percent != 50 {
+		t.Fatalf("first point = %+v, want commits=3 cumulative=3 percent=50", points[0])
+	}
+	if points[1].Commits != 3 || points[1].Cumulative != 6 || points[1].Percent != 100 {
+		t.Fatalf("second point = %+v, want commits=3 cumulative=6 percent=100", points[1])
+	}
+}
+
+func TestProgressBar(t *testing.T) {
+	tests := []struct {
+		name    string
+		percent int
+		width   int
+		want    string
+	}{
+		{name: "empty", percent: 0, width: 10, want: "[----------]"},
+		{name: "half", percent: 50, width: 10, want: "[#####-----]"},
+		{name: "full", percent: 100, width: 10, want: "[##########]"},
+		{name: "clamps high", percent: 150, width: 10, want: "[##########]"},
+		{name: "zero width", percent: 50, width: 0, want: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := progressBar(tt.percent, tt.width); got != tt.want {
+				t.Fatalf("progressBar(%d, %d) = %q, want %q", tt.percent, tt.width, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCountBar(t *testing.T) {
+	tests := []struct {
+		name  string
+		count int
+		max   int
+		width int
+		want  string
+	}{
+		{name: "zero count", count: 0, max: 10, width: 10, want: "          "},
+		{name: "half", count: 5, max: 10, width: 10, want: "#####     "},
+		{name: "rounds up", count: 1, max: 10, width: 10, want: "#         "},
+		{name: "full", count: 10, max: 10, width: 10, want: "##########"},
+		{name: "zero width", count: 5, max: 10, width: 0, want: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := countBar(tt.count, tt.max, tt.width); got != tt.want {
+				t.Fatalf("countBar(%d, %d, %d) = %q, want %q", tt.count, tt.max, tt.width, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestPrintCommitBars(t *testing.T) {
+	end := startOfDay(today)
+	start := end.AddDate(0, 0, -6)
+	commits := map[int]int{
+		daysAgo(start): 2,
+		daysAgo(end):   1,
+	}
+	b := Boundary{
+		Since: start,
+		Until: end,
+	}
+
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	printCommitBars(commits, b)
+	w.Close()
+
+	dat, err := io.ReadAll(r)
+	if err != nil {
+		t.Errorf("Error reading from pipe: %s", err.Error())
+	}
+
+	os.Stdout = oldStdout
+
+	output := string(dat)
+	if !strings.Contains(output, "Commit history") {
+		t.Fatalf("printCommitBars() output = %q, want title", output)
+	}
+	if !strings.Contains(output, "3") {
+		t.Fatalf("printCommitBars() output = %q, want commit count", output)
 	}
 }

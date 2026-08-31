@@ -7,17 +7,22 @@ BINARY_NAME=gitcs
 OUTPUT_DIR=bin
 
 # Cross-compilation targets
-PLATFORMS=linux/amd64 linux/386 windows/amd64 windows/386 darwin/amd64
+PLATFORMS=linux/amd64 linux/arm64 linux/386 windows/amd64 windows/arm64 windows/386 darwin/amd64 darwin/arm64
+
+# Build the Svelte assets that are embedded in release binaries.
+frontend:
+	cd frontend && npm ci && npm run build
 
 # Build command for each platform
-build:
-	@for platform in $(PLATFORMS); do \
+build: frontend
+	mkdir -p $(OUTPUT_DIR)
+	@set -e; for platform in $(PLATFORMS); do \
 		export GOOS=$${platform%/*}; \
 		export GOARCH=$${platform#*/}; \
 		output_name=$(OUTPUT_DIR)/$(BINARY_NAME)_$${GOOS}_$${GOARCH}; \
 		if [ $$GOOS = "windows" ]; then output_name=$$output_name.exe; fi; \
 		echo "Building $$output_name"; \
-		go build -o $$output_name; \
+		CGO_ENABLED=0 go build -trimpath -tags webembed -o $$output_name .; \
 	done
 
 # Compress binaries into a zip file
@@ -31,4 +36,4 @@ clean:
 # Build and compress
 all: clean build compress
 
-.PHONY: build compress clean all
+.PHONY: frontend build compress clean all

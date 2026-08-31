@@ -122,3 +122,136 @@ func printSummary(commits map[int]int, b Boundary) {
 		color.Cyan.Render(b.Until.Format("2006-01-02")),
 	)
 }
+
+type progressPoint struct {
+	Start      time.Time
+	End        time.Time
+	Commits    int
+	Cumulative int
+	Percent    int
+}
+
+func printProgression(commits map[int]int, b Boundary) {
+	points := buildProgression(commits, b, 7)
+	if len(points) == 0 {
+		fmt.Println("Overall progression")
+		fmt.Println("No commits found for this date range.")
+		return
+	}
+
+	fmt.Println("Overall progression")
+	fmt.Printf("%-23s %7s %7s %s\n", "Period", "Commits", "Total", "Progress")
+	for _, point := range points {
+		period := fmt.Sprintf("%s..%s", point.Start.Format("2006-01-02"), point.End.Format("2006-01-02"))
+		fmt.Printf(
+			"%-23s %7d %7d %s %3d%%\n",
+			period,
+			point.Commits,
+			point.Cumulative,
+			progressBar(point.Percent, 20),
+			point.Percent,
+		)
+	}
+}
+
+func printCommitBars(commits map[int]int, b Boundary) {
+	points := buildProgression(commits, b, 7)
+	if len(points) == 0 {
+		fmt.Println("Commit history")
+		fmt.Println("No commits found for this date range.")
+		return
+	}
+
+	maxCommits := 0
+	for _, point := range points {
+		if point.Commits > maxCommits {
+			maxCommits = point.Commits
+		}
+	}
+
+	fmt.Println("Commit history")
+	for _, point := range points {
+		period := fmt.Sprintf("%s..%s", point.Start.Format("2006-01-02"), point.End.Format("2006-01-02"))
+		fmt.Printf("%-23s |%s| %d\n", period, countBar(point.Commits, maxCommits, 30), point.Commits)
+	}
+}
+
+func buildProgression(commits map[int]int, b Boundary, intervalDays int) []progressPoint {
+	if intervalDays <= 0 {
+		intervalDays = 7
+	}
+
+	start := startOfDay(b.Since)
+	end := startOfDay(b.Until)
+	if start.After(end) {
+		return nil
+	}
+
+	total := commitsBetween(commits, start, end)
+	if total == 0 {
+		return nil
+	}
+
+	var points []progressPoint
+	cumulative := 0
+	for current := start; !current.After(end); current = current.AddDate(0, 0, intervalDays) {
+		periodEnd := current.AddDate(0, 0, intervalDays-1)
+		if periodEnd.After(end) {
+			periodEnd = end
+		}
+
+		periodCommits := commitsBetween(commits, current, periodEnd)
+		cumulative += periodCommits
+		points = append(points, progressPoint{
+			Start:      current,
+			End:        periodEnd,
+			Commits:    periodCommits,
+			Cumulative: cumulative,
+			Percent:    (cumulative * 100) / total,
+		})
+	}
+
+	return points
+}
+
+func commitsBetween(commits map[int]int, start, end time.Time) int {
+	total := 0
+	for current := start; !current.After(end); current = current.AddDate(0, 0, 1) {
+		total += commits[daysAgo(current)]
+	}
+	return total
+}
+
+func progressBar(percent, width int) string {
+	if width <= 0 {
+		return ""
+	}
+	if percent < 0 {
+		percent = 0
+	}
+	if percent > 100 {
+		percent = 100
+	}
+
+	filled := (percent*width + 50) / 100
+	return "[" + strings.Repeat("#", filled) + strings.Repeat("-", width-filled) + "]"
+}
+
+func countBar(count, max, width int) string {
+	if width <= 0 {
+		return ""
+	}
+	if count <= 0 || max <= 0 {
+		return strings.Repeat(" ", width)
+	}
+
+	filled := (count*width + max - 1) / max
+	if filled > width {
+		filled = width
+	}
+	return strings.Repeat("#", filled) + strings.Repeat(" ", width-filled)
+}
+
+func startOfDay(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}

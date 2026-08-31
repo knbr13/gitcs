@@ -2,7 +2,7 @@ package main
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"slices"
 	"testing"
 )
@@ -21,13 +21,13 @@ func TestScanGitFolders(t *testing.T) {
 	}{
 		{
 			Name: "5 expected repos",
-			Root: path.Join(wd, "test_data"),
+			Root: filepath.Join(wd, "test_data"),
 			Want: []string{
-				path.Join(wd, "test_data", "project_1"),
-				path.Join(wd, "test_data", "project_2"),
-				path.Join(wd, "test_data", "project_3"),
-				path.Join(wd, "test_data", "project_that_has_future_commits"),
-				path.Join(wd, "test_data", "project_by_another_contributor"),
+				filepath.Join(wd, "test_data", "project_1"),
+				filepath.Join(wd, "test_data", "project_2"),
+				filepath.Join(wd, "test_data", "project_3"),
+				filepath.Join(wd, "test_data", "project_that_has_future_commits"),
+				filepath.Join(wd, "test_data", "project_by_another_contributor"),
 			},
 		},
 		{
@@ -37,7 +37,7 @@ func TestScanGitFolders(t *testing.T) {
 		},
 		{
 			Name:      "path does not exist",
-			Root:      path.Join(wd, "does_not_exist"),
+			Root:      filepath.Join(wd, "does_not_exist"),
 			Want:      []string{},
 			ExpectErr: true,
 		},

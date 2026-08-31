@@ -11,3 +11,7 @@ gitcs
 
 # Dependeny Directory
 vendor/
+
+# Svelte development output
+frontend/node_modules/
+frontend/dist/

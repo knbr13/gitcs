@@ -1,0 +1,219 @@
+/*
+ * Design tokens.
+ *
+ * Light is defined on bare :root so nothing depends on a media query to have a
+ * colour at all. Dark is redefined twice -- once for the system preference and
+ * once for an explicit data-theme -- so both the OS setting and a manual
+ * override resolve, in both directions.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Ground and materials. A material is a translucent layer that floats over
+     content; a surface is opaque. Never stack two light materials. */
+  --ground: #f4f6f9;
+  --ground-deep: #e8ecf2;
+  --surface: #ffffff;
+  --material: rgba(255, 255, 255, 0.68);
+  --material-thick: rgba(255, 255, 255, 0.82);
+  --material-edge: rgba(255, 255, 255, 0.9);
+  --material-blur: 30px;
+
+  --hairline: rgba(9, 22, 38, 0.11);
+  --hairline-strong: rgba(9, 22, 38, 0.2);
+
+  /* Vibrancy: text over a material is a notch heavier and darker than text
+     over an opaque surface would need to be. */
+  --text: #0b1622;
+  --text-2: #46586b;
+  --text-3: #6c7d90;
+
+  --accent: #0a6fd8;
+  --accent-soft: rgba(10, 111, 216, 0.13);
+  --accent-ink: #ffffff;
+
+  --calls: #1f83a8;
+  --indirect: #7a5cb4;
+  --bridge: #b8701c;
+  --group: #64798c;
+
+  --add: #17794a;
+  --del: #c2314c;
+  --warn: #a86412;
+  --live: #16a34a;
+
+  --shadow-card: 0 1px 2px rgba(9, 22, 38, 0.07), 0 8px 22px rgba(9, 22, 38, 0.08);
+  --shadow-lift: 0 2px 6px rgba(9, 22, 38, 0.1), 0 18px 44px rgba(9, 22, 38, 0.16);
+  /* A bigger surface reads as thicker: more blur, deeper shadow. */
+  --shadow-sheet: 0 1px 0 var(--material-edge) inset, 0 -1px 40px rgba(9, 22, 38, 0.06),
+    0 24px 70px rgba(9, 22, 38, 0.22);
+
+  --radius-chip: 9px;
+  --radius-card: 13px;
+  --radius-sheet: 20px;
+
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI', Inter,
+    system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ground: #0a0f16;
+    --ground-deep: #05080d;
+    --surface: #131a24;
+    --material: rgba(24, 32, 43, 0.66);
+    --material-thick: rgba(20, 27, 37, 0.86);
+    --material-edge: rgba(255, 255, 255, 0.09);
+
+    --hairline: rgba(255, 255, 255, 0.09);
+    --hairline-strong: rgba(255, 255, 255, 0.17);
+
+    --text: #eef3f9;
+    --text-2: #a8b7c7;
+    --text-3: #7b8b9c;
+
+    --accent: #58aaff;
+    --accent-soft: rgba(88, 170, 255, 0.16);
+    --accent-ink: #06121f;
+
+    --calls: #4fb4d8;
+    --indirect: #a68ada;
+    --bridge: #e0a45a;
+    --group: #5c7285;
+
+    --add: #4ade80;
+    --del: #fb7185;
+    --warn: #fbbf24;
+    --live: #35d07f;
+
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 26px rgba(0, 0, 0, 0.34);
+    --shadow-lift: 0 2px 8px rgba(0, 0, 0, 0.45), 0 22px 52px rgba(0, 0, 0, 0.5);
+    --shadow-sheet: 0 1px 0 var(--material-edge) inset, 0 -1px 40px rgba(0, 0, 0, 0.3),
+      0 26px 80px rgba(0, 0, 0, 0.6);
+  }
+}
+
+:root[data-theme='dark'] {
+  --ground: #0a0f16;
+  --ground-deep: #05080d;
+  --surface: #131a24;
+  --material: rgba(24, 32, 43, 0.66);
+  --material-thick: rgba(20, 27, 37, 0.86);
+  --material-edge: rgba(255, 255, 255, 0.09);
+
+  --hairline: rgba(255, 255, 255, 0.09);
+  --hairline-strong: rgba(255, 255, 255, 0.17);
+
+  --text: #eef3f9;
+  --text-2: #a8b7c7;
+  --text-3: #7b8b9c;
+
+  --accent: #58aaff;
+  --accent-soft: rgba(88, 170, 255, 0.16);
+  --accent-ink: #06121f;
+
+  --calls: #4fb4d8;
+  --indirect: #a68ada;
+  --bridge: #e0a45a;
+  --group: #5c7285;
+
+  --add: #4ade80;
+  --del: #fb7185;
+  --warn: #fbbf24;
+  --live: #35d07f;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 26px rgba(0, 0, 0, 0.34);
+  --shadow-lift: 0 2px 8px rgba(0, 0, 0, 0.45), 0 22px 52px rgba(0, 0, 0, 0.5);
+  --shadow-sheet: 0 1px 0 var(--material-edge) inset, 0 -1px 40px rgba(0, 0, 0, 0.3),
+    0 26px 80px rgba(0, 0, 0, 0.6);
+}
+
+/* Transparency off: frost the materials solid rather than dropping the layer. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --material: var(--surface);
+    --material-thick: var(--surface);
+    --material-blur: 0px;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --material: var(--surface);
+    --material-thick: var(--surface);
+    --hairline: var(--hairline-strong);
+    --text-2: var(--text);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--ground);
+}
+
+body {
+  min-width: 320px;
+  color: var(--text);
+  /* Percentage root size honours the reader's own text-size setting; every
+     spacing value downstream is in rem/em so the layout grows with it. */
+  font: 100%/1.5 var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+/* Type scale. Tracking is size-specific: large text needs negative tracking to
+   stop looking loose, small text needs a touch of positive to stay legible. */
+.t-display {
+  font-size: clamp(1.15rem, 1.6vw, 1.4rem);
+  font-weight: 640;
+  line-height: 1.16;
+  letter-spacing: -0.019em;
+}
+
+.t-title {
+  font-size: 0.95rem;
+  font-weight: 620;
+  line-height: 1.28;
+  letter-spacing: -0.011em;
+}
+
+.t-body {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  letter-spacing: 0;
+}
+
+.t-small {
+  font-size: 0.76rem;
+  line-height: 1.4;
+  letter-spacing: 0.004em;
+}
+
+.t-label {
+  font-size: 0.66rem;
+  font-weight: 680;
+  line-height: 1.2;
+  letter-spacing: 0.075em;
+  text-transform: uppercase;
+}
+
+.t-mono {
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: -0.005em;
+}

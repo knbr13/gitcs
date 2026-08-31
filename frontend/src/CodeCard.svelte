@@ -1,11 +1,12 @@
 <script>
   import { Handle, Position } from '@xyflow/svelte';
+  import { areaColors } from './lib/architecture.js';
 
   let { data, selected = false } = $props();
 
   const statusNames = { A: 'added', M: 'modified', D: 'deleted', R: 'renamed' };
 
-  let isScope = $derived(String(data.id ?? '').startsWith('__'));
+  let isScope = $derived(data.kind === 'module');
   let commits = $derived(data.periodCommits ?? 0);
   // Relative to the busiest file on screen, so the rail means something across
   // the whole map rather than against an arbitrary ceiling.
@@ -19,17 +20,21 @@
   class:selected
   class:pressed
   class:scope={isScope}
+  class:tests={data.isTest}
   class:changed={Boolean(data.change)}
   class:affected={data.affected}
   data-status={data.change?.status ?? ''}
   data-area={data.area ?? ''}
+  style:--card-accent={areaColors[data.area] ?? areaColors.unknown}
   onpointerdown={() => (pressed = true)}
   onpointerup={() => (pressed = false)}
   onpointerleave={() => (pressed = false)}
   onpointercancel={() => (pressed = false)}
 >
   <header>
-    <span class="t-label kind">{data.language || 'source'}</span>
+    <span class="t-label kind">{isScope ? data.projectName : data.language || 'source'}</span>
+    {#if isScope && data.isTest}<strong class="badge linked">Tests</strong>{/if}
+    {#if data.context}<strong class="badge linked">Related</strong>{/if}
     {#if data.change}
       <strong class="badge status" title={statusNames[data.change.status]}>
         {statusNames[data.change.status] ?? data.change.status}
@@ -42,6 +47,9 @@
   <h3 class="t-title">{data.label}</h3>
   <p class="t-small">{data.change?.summary?.changed ?? data.description}</p>
 
+  {#if isScope}
+    <footer><span class="t-mono">{data.entryPoints.length ? `${data.entryPoints.length} entry points` : data.isTest ? 'Tests and helpers' : 'Static dependencies'}</span></footer>
+  {:else}
   <footer>
     <div class="rail" aria-hidden="true"><span style="width:{railWidth}%"></span></div>
     <span class="t-mono count">{commits}</span>
@@ -49,17 +57,20 @@
       <span class="t-mono diff"><b>+{data.change.additions}</b> <i>−{data.change.deletions}</i></span>
     {/if}
   </footer>
+  {/if}
 </article>
 <Handle type="source" position={Position.Bottom} />
 
 <style>
+  .card.tests { border-style: dashed; }
+  .card.scope { min-height: 155px; }
   .card {
     position: relative;
     width: 234px;
     padding: 12px 14px 11px;
-    border: 1px solid var(--hairline);
+    border: 1px solid color-mix(in srgb, var(--card-accent) 55%, var(--hairline));
     border-radius: var(--radius-card);
-    background: var(--surface);
+    background: color-mix(in srgb, var(--card-accent) 7%, var(--surface));
     color: var(--text);
     box-shadow: var(--shadow-card);
     /* Short, cheap, compositor-only. Anything a finger drives is sprung in JS
@@ -69,7 +80,7 @@
   }
 
   .card:hover {
-    border-color: var(--hairline-strong);
+    border-color: var(--card-accent);
     box-shadow: var(--shadow-lift);
     transform: translateY(-1px);
   }
@@ -80,9 +91,10 @@
     transition-duration: 90ms;
   }
 
-  .card.selected {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow-lift);
+  .card.selected,
+  .card.scope.selected {
+    border-color: var(--card-accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-accent) 18%, transparent), var(--shadow-lift);
     transform: translateY(-2px);
   }
 
@@ -93,30 +105,17 @@
   }
 
   .card.linked {
-    border-color: color-mix(in srgb, var(--accent) 45%, var(--hairline));
+    border-color: color-mix(in srgb, var(--card-accent) 75%, var(--hairline));
   }
 
   .card.scope {
     width: 250px;
-    background: color-mix(in srgb, var(--accent) 7%, var(--surface));
-    border-color: color-mix(in srgb, var(--accent) 30%, var(--hairline));
-  }
-
-  .card.scope[data-area='backend'] {
-    background: color-mix(in srgb, var(--bridge) 9%, var(--surface));
-    border-color: color-mix(in srgb, var(--bridge) 32%, var(--hairline));
+    background: color-mix(in srgb, var(--card-accent) 12%, var(--surface));
+    border-color: color-mix(in srgb, var(--card-accent) 60%, var(--hairline));
   }
 
   .card.affected {
     border-style: dashed;
-  }
-
-  .card[data-status='A'] {
-    border-color: color-mix(in srgb, var(--add) 55%, var(--hairline));
-  }
-
-  .card[data-status='D'] {
-    border-color: color-mix(in srgb, var(--del) 55%, var(--hairline));
   }
 
   header {
@@ -128,7 +127,7 @@
   }
 
   .kind {
-    color: var(--text-3);
+    color: var(--card-accent);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -159,8 +158,8 @@
   }
 
   .badge.linked {
-    color: var(--accent);
-    background: var(--accent-soft);
+    color: var(--card-accent);
+    background: color-mix(in srgb, var(--card-accent) 16%, transparent);
   }
 
   h3 {
@@ -197,7 +196,7 @@
     display: block;
     height: 100%;
     border-radius: inherit;
-    background: var(--accent);
+    background: var(--card-accent);
     /* The rail follows the time scrubber continuously while it is dragged. */
     transition: width 120ms linear;
   }

@@ -33,6 +33,8 @@ type changeSummary struct {
 }
 
 type mapNodeResponse struct {
+	ProjectID   string             `json:"projectId"`
+	IsTest      bool               `json:"isTest"`
 	ID          NodeID             `json:"id"`
 	Label       string             `json:"label"`
 	Language    string             `json:"language"`
@@ -89,6 +91,8 @@ type mapActivityBucket struct {
 }
 
 type mapResponse struct {
+	Projects     []mapProjectResponse     `json:"projects"`
+	Architecture mapArchitectureResponse  `json:"architecture"`
 	Repository   string                   `json:"repository"`
 	Branch       string                   `json:"branch"`
 	Revision     uint64                   `json:"revision"`

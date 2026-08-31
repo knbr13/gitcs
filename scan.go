@@ -34,6 +34,7 @@ func scanGitFolders(root string) ([]string, error) {
 // excludedFolders is a map of folder names (case-insensitive) to be excluded during the scan.
 var excludedFolders = map[string]struct{}{
 	"node_modules": {},
+	".pnpm-store":  {},
 	"vendor":       {},
 	".svn":         {},
 	".hg":          {},

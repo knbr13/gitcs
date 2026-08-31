@@ -9,6 +9,7 @@
   import Segmented from './Segmented.svelte';
   import Sheet from './Sheet.svelte';
   import { SPRINGS, Spring, clamp, prefersReducedMotion } from './lib/motion.js';
+  import { architectureGraph, fileGraph, projectOptions, reconcileNavigation, connectionId, areaColors } from './lib/architecture.js';
 
   const nodeTypes = { code: CodeCard };
 
@@ -22,15 +23,12 @@
   const SHEET_PEEK = 300;
 
   const viewOptions = [
+    { id: 'architecture', label: 'Architecture', hint: 'Modules and static dependencies' },
     { id: 'changes', label: 'Changing', hint: 'What is moving right now, and what it touches' },
     { id: 'calls', label: 'Calls', hint: 'Every source file and what it uses' },
     { id: 'both', label: 'Everything', hint: 'The whole graph, with changes highlighted' }
   ];
-  const scopeOptions = [
-    { id: 'all', label: 'Whole repository' },
-    { id: 'frontend', label: 'Frontend only' },
-    { id: 'backend', label: 'Backend only' }
-  ];
+  const scopeOptions = $derived(projectOptions(graph));
 
   let graph = $state(null);
   let nodes = $state.raw([]);
@@ -39,7 +37,9 @@
 
   let selectedId = $state('');
   let hoverId = $state('');
-  let view = $state('changes');
+  let view = $state('architecture');
+  let moduleId = $state('');
+  let selectedEdgeId = $state('');
   let scope = $state('all');
   let period = $state('30');
   let loading = $state(true);
@@ -69,17 +69,22 @@
   let commitSets = new Map();
 
   const selected = $derived(
-    selectedId ? (graph?.nodes.find((node) => node.id === selectedId) ?? null) : null
+    selectedId ? (displayGraph.nodes.find((node) => node.id === selectedId) ?? null) : null
   );
+  const displayGraph = $derived(view === 'architecture' ? architectureGraph(graph, scope) : fileGraph(graph, scope, moduleId));
+  const selectedEdge = $derived(displayGraph.edges.find((edge) => connectionId(edge) === selectedEdgeId) ?? null);
+  const activeModule = $derived(graph?.architecture?.modules.find((module) => module.id === moduleId));
+  const selectedMembers = $derived(selected?.kind === 'module' ? (graph?.nodes ?? []).filter((node) => selected.memberIds.includes(node.id)) : []);
+  const selectedConnections = $derived(selected?.kind === 'module' ? displayGraph.edges.filter((edge) => edge.from === selected.id || edge.to === selected.id) : []);
   // Hovering previews the relationship a click commits to, so the map answers
   // before you have to ask it.
   const focusId = $derived(hoverId || selectedId);
   const changedCount = $derived(
     (graph?.nodes.filter((node) => node.change).length ?? 0) + (graph?.otherChanges?.length ?? 0)
   );
-  const sourceCount = $derived(scopedSourceNodes(graph?.nodes ?? []).length);
+  const sourceCount = $derived(fileGraph(graph, scope).nodes.length);
   const scopeLabel = $derived(
-    scopeOptions.find((option) => option.id === scope)?.label ?? 'Whole repository'
+    scopeOptions.find((option) => option.id === scope)?.label ?? 'All projects'
   );
   const selectedCommits = $derived(activityCount(selected?.activity));
   const dependsOn = $derived(relatedNodes('out'));
@@ -156,84 +161,12 @@
     );
   }
 
-  function visibleGraph(apiNodes, apiEdges) {
-    const scoped = buildScopedGraph(apiNodes, apiEdges);
-    if (view === 'calls' || view === 'both') return scoped;
+  function visibleGraph(nextGraph) {
+    if (view === 'architecture') return architectureGraph(nextGraph, scope);
+    const scoped = fileGraph(nextGraph, scope, moduleId);
+    if (view === 'calls' || view === 'both' || moduleId) return scoped;
     return reviewGraph(scoped.nodes, scoped.edges);
   }
-
-  function buildScopedGraph(apiNodes, apiEdges) {
-    const scopedNodes = scopedSourceNodes(apiNodes);
-    const scopedIds = new Set(scopedNodes.map((node) => node.id));
-    const scopedEdges = apiEdges.filter((edge) => scopedIds.has(edge.from) && scopedIds.has(edge.to));
-    const resultNodes = [...scopedNodes];
-    const resultEdges = [...scopedEdges];
-    const categories = [...new Set(scopedNodes.map(nodeArea))].sort();
-
-    for (const category of categories) {
-      const parent = categoryNode(category);
-      resultNodes.push(parent);
-      for (const root of categoryRoots(scopedNodes, scopedEdges, category)) {
-        resultEdges.push({ from: parent.id, to: root.id, kind: 'category' });
-      }
-    }
-
-    if (scope === 'all' && categories.includes('frontend') && categories.includes('backend')) {
-      resultEdges.push({ from: '__frontend__', to: '__backend__', kind: 'bridge' });
-    }
-
-    return { nodes: resultNodes, edges: resultEdges };
-  }
-
-  function scopedSourceNodes(apiNodes) {
-    if (scope === 'all') return apiNodes;
-    return apiNodes.filter((node) => nodeArea(node) === scope);
-  }
-
-  function nodeArea(node) {
-    const id = String(node.id ?? '').toLowerCase();
-    const language = String(node.language ?? '').toLowerCase();
-    if (
-      id.startsWith('frontend/') ||
-      ['svelte', 'javascript', 'typescript', 'css', 'html', 'vue'].includes(language)
-    ) {
-      return 'frontend';
-    }
-    return 'backend';
-  }
-
-  function categoryNode(category) {
-    const frontend = category === 'frontend';
-    const childCount = scopedSourceNodes(graph?.nodes ?? []).filter(
-      (node) => nodeArea(node) === category
-    ).length;
-    return {
-      id: frontend ? '__frontend__' : '__backend__',
-      label: frontend ? 'Frontend' : 'Backend',
-      language: 'group',
-      kind: 'folder',
-      description: frontend
-        ? `${childCount} client-side source files and UI entry points.`
-        : `${childCount} server-side source files and analysis logic.`,
-      isRoot: true,
-      openable: false,
-      area: category,
-      activity: { commits30: 0, commits90: 0, commitsAll: 0, people: 0, recentCommits: [] }
-    };
-  }
-
-  function categoryRoots(apiNodes, apiEdges, category) {
-    const categoryNodes = apiNodes.filter((node) => nodeArea(node) === category);
-    const categoryIds = new Set(categoryNodes.map((node) => node.id));
-    const incoming = new Set(
-      apiEdges
-        .filter((edge) => categoryIds.has(edge.from) && categoryIds.has(edge.to))
-        .map((edge) => edge.to)
-    );
-    const roots = categoryNodes.filter((node) => node.isRoot || !incoming.has(node.id));
-    return (roots.length ? roots : categoryNodes.slice(0, 4)).slice(0, 6);
-  }
-
   // --- Layout -------------------------------------------------------------
   // Columns by dependency depth, each column stacked by measured card height so
   // two cards can never land on top of each other.
@@ -248,7 +181,7 @@
   const SAFETY_PAD = 10;
 
   function isScopeId(id) {
-    return String(id ?? '').startsWith('__');
+    return String(id ?? '').startsWith('module:');
   }
 
   function cardWidth(node) {
@@ -259,7 +192,7 @@
   // activity rail. Titles wrap at roughly 26 characters inside a 234px card.
   // This estimate must never come in under the real height or cards overlap.
   function cardHeight(node) {
-    if (isScopeId(node.id)) return 118;
+    if (node.kind === 'module') return 155;
     const titleLines = Math.min(2, Math.ceil(String(node.label ?? '').length / 26) || 1);
     return CARD_BASE_HEIGHT + (titleLines - 1) * TITLE_LINE_HEIGHT + SAFETY_PAD;
   }
@@ -268,7 +201,6 @@
     const incoming = new Map(apiNodes.map((node) => [node.id, []]));
     const outgoing = new Map(apiNodes.map((node) => [node.id, []]));
     for (const edge of apiEdges) {
-      if (edge.kind === 'bridge') continue;
       if (!outgoing.has(edge.from) || !incoming.has(edge.to)) continue;
       outgoing.get(edge.from).push(edge.to);
       incoming.get(edge.to).push(edge.from);
@@ -337,6 +269,28 @@
   }
 
   function computeLayout(apiNodes, apiEdges) {
+    if (view !== 'architecture') return computeProjectLayout(apiNodes, apiEdges);
+    const result = new Map();
+    let top = 0;
+    for (const project of graph?.projects ?? []) {
+      const group = apiNodes.filter((node) => node.projectId === project.id);
+      if (!group.length) continue;
+      const ids = new Set(group.map((node) => node.id));
+      const positions = computeProjectLayout(group, apiEdges.filter((edge) => ids.has(edge.from) && ids.has(edge.to)));
+      const minY = Math.min(...[...positions.values()].map((point) => point.y));
+      let bottom = top;
+      for (const node of group) {
+        const point = positions.get(node.id);
+        const y = point.y - minY + top;
+        result.set(node.id, { x: point.x, y });
+        bottom = Math.max(bottom, y + cardHeight(node));
+      }
+      top = bottom + 140;
+    }
+    return result;
+  }
+
+  function computeProjectLayout(apiNodes, apiEdges) {
     const { incoming, outgoing } = buildAdjacency(apiNodes, apiEdges);
     const depths = assignDepths(apiNodes, outgoing, incoming);
 
@@ -400,8 +354,6 @@
 
   function edgeKindKey(kind) {
     if (kind === 'indirect') return 'indirect';
-    if (kind === 'bridge') return 'bridge';
-    if (kind === 'category') return 'group';
     return 'code';
   }
 
@@ -410,8 +362,6 @@
   const KIND_COLORS = {
     code: 'var(--calls)',
     indirect: 'var(--indirect)',
-    bridge: 'var(--bridge)',
-    group: 'var(--group)'
   };
 
   const RELATION_PAINT_ORDER = { unrelated: 0, neutral: 1, incoming: 2, outgoing: 3 };
@@ -427,7 +377,14 @@
 
   function renderGraph(nextGraph = graph) {
     if (!nextGraph) return;
-    visible = visibleGraph(nextGraph.nodes, nextGraph.edges);
+    const navigation = reconcileNavigation(nextGraph, { scope, moduleId, selectedId, edgeId: selectedEdgeId, architecture: view === 'architecture' });
+    scope = navigation.scope;
+    moduleId = navigation.moduleId;
+    selectedId = navigation.selectedId;
+    selectedEdgeId = navigation.edgeId;
+    visible = visibleGraph(nextGraph);
+    const alive = new Set([...nextGraph.nodes.map((node) => node.id), ...(nextGraph.architecture?.modules ?? []).map((module) => module.id)]);
+    for (const id of pinnedPositions.keys()) if (!alive.has(id)) pinnedPositions.delete(id);
     if (!visible.nodes.some((node) => node.id === selectedId)) selectedId = '';
     rebuildCommitSets(nextGraph.nodes);
     retargetLayout(computeLayout(visible.nodes, visible.edges));
@@ -542,12 +499,13 @@
           intensity: counts[index] / peak,
           relation: relationFor(node.id)
         },
-        ariaLabel: `${node.label}. ${node.description}`
+        ariaLabel: `${node.projectName ? node.projectName + ': ' : ''}${node.label}. ${node.description}`
       };
     });
   }
 
   function syncEdges() {
+    const sourceAreas = new Map(visible.nodes.map((node) => [node.id, node.area]));
     edges = visible.edges
       .map((edge) => {
         const relation = !focusId
@@ -557,20 +515,22 @@
             : edge.to === focusId
               ? 'incoming'
               : 'unrelated';
-        const structural = edge.kind === 'category' || edge.kind === 'bridge';
-        const coChange = structural ? 0 : coChangeCount(edge.from, edge.to);
+        const coChange = view === 'architecture' ? 0 : coChangeCount(edge.from, edge.to);
         const kindKey = edgeKindKey(edge.kind);
+        const color = areaColors[sourceAreas.get(edge.from)] ?? areaColors.unknown;
         return {
-          id: `${edge.from}:${edge.to}:${edge.kind}`,
+          id: connectionId(edge),
           source: edge.from,
           target: edge.to,
           type: 'default',
           interactionWidth: 22,
-          // Structural lines group the map; they are not dependencies, so they
-          // get no arrowhead and no strength.
-          markerEnd: structural
-            ? undefined
-            : { type: 'arrowclosed', width: 12, height: 12, color: KIND_COLORS[kindKey] },
+          // All rendered connections are code dependencies (or explicitly
+          // labelled collapsed paths in the Changing view).
+          markerEnd: { type: 'arrowclosed', width: 12, height: 12, color },
+          style: `--edge-color: ${color}`,
+          label: view === 'architecture' ? `${edge.kind} · ${edge.count}` : undefined,
+          labelStyle: 'fill: var(--text); font-size: 11px',
+          labelBgStyle: 'fill: var(--surface)',
           class: `${kindKey}-edge strength-${strengthTier(coChange)} rel-${relation}`,
           data: { coChange, relation, kind: edge.kind },
           relation
@@ -612,7 +572,7 @@
   }
 
   function occlusion() {
-    if (!selectedId) return { right: 0, bottom: 0 };
+    if (!selectedId && !selectedEdgeId) return { right: 0, bottom: 0 };
     return narrow ? { right: 0, bottom: detents[0] } : { right: PANEL_WIDTH, bottom: 0 };
   }
 
@@ -716,6 +676,7 @@
     if (!id) return;
     const opening = !selectedId;
     selectedId = id;
+    selectedEdgeId = '';
     if (opening) lastExtent = 0;
     // Wait a frame so `occlusion()` already knows the panel is coming; the
     // flight is then computed against the space that will actually be left.
@@ -724,15 +685,16 @@
 
   function clearSelection() {
     selectedId = '';
+    selectedEdgeId = '';
   }
 
   // --- Data ----------------------------------------------------------------
 
   function relatedNodes(direction) {
     if (!graph || !selectedId) return [];
-    const byId = new Map(graph.nodes.map((node) => [node.id, node]));
+    const byId = new Map(displayGraph.nodes.map((node) => [node.id, node]));
     const ids = [];
-    for (const edge of graph.edges) {
+    for (const edge of displayGraph.edges) {
       if (direction === 'out' && edge.from === selectedId) ids.push(edge.to);
       if (direction === 'in' && edge.to === selectedId) ids.push(edge.from);
     }
@@ -810,6 +772,8 @@
 
   function setView(next) {
     view = next;
+    moduleId = '';
+    clearSelection();
     // A different graph gets a fresh layout; keeping hand-dragged spots from the
     // previous one is what drops new cards on top of old ones.
     pinnedPositions = new Map();
@@ -821,20 +785,48 @@
     scope = next;
     scopeOpen = false;
     selectedId = '';
+    selectedEdgeId = '';
+    moduleId = '';
     pinnedPositions = new Map();
     renderGraph();
     requestAnimationFrame(fitAll);
   }
 
   function showChanges() {
-    const ids = visible.nodes.filter((node) => node.change).map((node) => node.id);
+    const ids = visible.nodes.filter((node) => node.change || node.changedCount > 0).map((node) => node.id);
     if (ids.length) flyTo(ids, { padding: 80, maxZoom: 1 });
     else fitAll();
   }
 
   function onNodeClick({ node, event }) {
     select(node.id);
-    if ('detail' in event && event.detail >= 2) openInEditor(node.id);
+    if ('detail' in event && event.detail >= 2) {
+      if (node.data.kind === 'module') drillInto(node.id);
+      else openInEditor(node.id);
+    }
+  }
+
+  function drillInto(id) {
+    moduleId = id;
+    view = 'calls';
+    clearSelection();
+    renderGraph();
+    requestAnimationFrame(fitAll);
+  }
+
+  function backToArchitecture() {
+    moduleId = '';
+    view = 'architecture';
+    clearSelection();
+    renderGraph();
+    requestAnimationFrame(fitAll);
+  }
+
+  function selectEdge({ edge, event }) {
+    if (view !== 'architecture') return;
+    event?.stopPropagation();
+    selectedId = '';
+    selectedEdgeId = edge.id;
   }
 
   function onNodeDragStop({ targetNode }) {
@@ -948,6 +940,7 @@
         deleteKey={null}
         proOptions={{ hideAttribution: true }}
         onnodeclick={onNodeClick}
+        onedgeclick={selectEdge}
         onnodepointerenter={({ node }) => (hoverId = node.id)}
         onnodepointerleave={() => (hoverId = '')}
         onnodedragstart={({ targetNode }) => (draggingId = targetNode?.id ?? null)}
@@ -961,6 +954,10 @@
     <!-- Chrome floats over the map instead of taking a strip away from it. -->
     <div class="chrome top">
       <div class="cluster">
+        {#if activeModule && view !== 'architecture'}
+          <button class="pill" onclick={backToArchitecture}>← Architecture</button>
+          <span class="pill t-small">{activeModule.label} · files + direct neighbors</span>
+        {/if}
         <div class="anchor">
           <button
             class="pill repo"
@@ -1048,19 +1045,22 @@
           </button>
           <Popover open={helpOpen} label="How to read this map" onclose={() => (helpOpen = false)}>
             <p class="t-label pop-head">Reading the map</p>
-            <p class="t-small pop-line">An arrow points from a file to what it uses.</p>
+            <p class="t-small pop-line">Blue: frontend · red: Rust · green: backend. Gray means no role was detected. Connections use the source card's color; change badges keep their Git status colors.</p>
+            <p class="t-small pop-line">Arrows show static imports and calls, not runtime execution. Select a module connection to see the file evidence. Test dependencies do not prove coverage.</p>
             <ul class="legend">
               <li><i class="swatch code"></i><span class="t-small">uses directly</span></li>
               <li><i class="swatch indirect"></i><span class="t-small">uses via files not shown</span></li>
-              <li><i class="swatch bridge"></i><span class="t-small">frontend ↔ backend</span></li>
-              <li><i class="swatch group"></i><span class="t-small">grouping, not a dependency</span></li>
             </ul>
             <p class="t-label pop-head">Line weight</p>
+            {#if view === 'architecture'}
+              <p class="t-small pop-line">Architecture lines have uniform weight. Labels count file connections.</p>
+            {:else}
             <ul class="legend">
               <li><i class="gauge weak"></i><span class="t-small">rarely changed together</span></li>
               <li><i class="gauge medium"></i><span class="t-small">sometimes</span></li>
               <li><i class="gauge strong"></i><span class="t-small">often</span></li>
             </ul>
+            {/if}
             <p class="t-label pop-head">Keys</p>
             <p class="t-small pop-line">
               <kbd>⌘K</kbd> jump · <kbd>f</kbd> fit · <kbd>esc</kbd> back · double-click a card to open it
@@ -1076,7 +1076,13 @@
         <button onclick={fitAll}>Fit</button>
         <button onclick={() => zoomBy(1.25)} aria-label="Zoom in">+</button>
       </div>
-      {#if graph?.activity?.length}
+      {#if view === 'architecture'}
+        <span class="pill t-small">
+          <span style:color={areaColors.frontend}>● Frontend</span>
+          <span style:color={areaColors.rust}>● Rust</span>
+          <span style:color={areaColors.backend}>● Backend</span>
+        </span>
+      {:else if graph?.activity?.length}
         <Scrubber buckets={graph.activity} {period} onperiod={(next) => (period = next)} />
       {/if}
     </div>
@@ -1087,26 +1093,42 @@
   </div>
 
   <Sheet
-    open={Boolean(selected)}
+    open={Boolean(selected || selectedEdge)}
     axis={narrow ? 'y' : 'x'}
     {detents}
-    label="File inspector"
+    label="Map inspector"
     onclose={clearSelection}
     onextent={onSheetExtent}
   >
     {#snippet header()}
-      {#if selected}
+      {#if selectedEdge}
         <div class="ins-head">
           <div class="ins-id">
-            <p class="t-label eyebrow" class:hot={Boolean(selected.change)}>
-              {selected.change ? 'Changing now' : selected.kind === 'folder' ? 'Group' : 'Source file'}
-            </p>
-            <h2 class="t-display">{selected.label}</h2>
-            <code class="t-mono">{selected.id}</code>
+            <p class="t-label eyebrow">Static dependency</p>
+            <h2 class="t-display">{selectedEdge.kind}</h2>
+            <p class="t-small">{selectedEdge.count} file connections</p>
           </div>
           <button class="close" onclick={clearSelection} aria-label="Close the inspector">✕</button>
         </div>
-        <p class="t-body lead">{lead()}</p>
+      {:else if selected}
+        <div class="ins-head">
+          <div class="ins-id">
+            <p class="t-label eyebrow" class:hot={Boolean(selected.change)}>
+              {selected.kind === 'module' ? `${selected.projectName} · ${selected.isTest ? 'Tests' : 'Module'}` : selected.change ? 'Changing now' : selected.isTest ? 'Test file' : 'Source file'}
+            </p>
+            <h2 class="t-display">{selected.label}</h2>
+            <code class="t-mono">{selected.path ?? selected.id}</code>
+          </div>
+          <button class="close" onclick={clearSelection} aria-label="Close the inspector">✕</button>
+        </div>
+        <p class="t-body lead">{selected.kind === 'module' ? selected.description : lead()}</p>
+        {#if selected.kind === 'module'}
+          <div class="stats">
+            <div><strong>{selected.fileCount}</strong><span class="t-small">{selected.isTest ? 'test files' : 'source files'}</span></div>
+            <div><strong>{selected.changedCount}</strong><span class="t-small">changing</span></div>
+            <div><strong>{selected.entryPoints.length}</strong><span class="t-small">entry points</span></div>
+          </div>
+        {:else}
         <div class="stats">
           <div>
             <strong>{selectedCommits}</strong>
@@ -1121,11 +1143,58 @@
             <span class="t-small">last change</span>
           </div>
         </div>
+        {/if}
       {/if}
     {/snippet}
 
     {#snippet children()}
-      {#if selected}
+      {#if selectedEdge}
+        <div class="ins-body">
+          <h3 class="t-label">File evidence</h3>
+          <p class="t-small">These files import or call the target files. This is not a runtime trace or test coverage report.</p>
+          <ul class="evidence-list">
+            {#each selectedEdge.evidence as item}
+              <li>
+                <button class="t-mono" onclick={() => openInEditor(item.from)}>{item.from}</button>
+                <span class="t-small">→ {item.kind}</span>
+                <button class="t-mono" onclick={() => openInEditor(item.to)}>{item.to}</button>
+              </li>
+            {/each}
+          </ul>
+        </div>
+      {:else if selected?.kind === 'module'}
+        <div class="ins-body">
+          <button class="open" onclick={() => drillInto(selected.id)}>View files</button>
+          {#if selected.entryPoints.length}
+            <h3 class="t-label">Detected entry points</h3>
+            <div class="chips">
+              {#each selected.entryPoints as id}<button class="t-mono" onclick={() => openInEditor(id)}>{id}</button>{/each}
+            </div>
+          {/if}
+          <h3 class="t-label">Depends on</h3>
+          <div class="chips">
+            {#each dependsOn as item}<button class="t-mono" onclick={() => select(item.id)}>{item.label}</button>{:else}<span class="t-small dim">Nothing detected.</span>{/each}
+          </div>
+          <h3 class="t-label">Used by</h3>
+          <div class="chips">
+            {#each usedBy as item}<button class="t-mono" onclick={() => select(item.id)}>{item.label}</button>{:else}<span class="t-small dim">Nothing detected.</span>{/each}
+          </div>
+          {#if selectedConnections.length}
+            <h3 class="t-label">Connection evidence</h3>
+            <div class="chips">
+              {#each selectedConnections as edge}
+                <button class="t-small" onclick={() => selectEdge({edge: {id: connectionId(edge)}})}>
+                  {displayGraph.nodes.find((node) => node.id === edge.from)?.label} → {displayGraph.nodes.find((node) => node.id === edge.to)?.label} · {edge.kind} ({edge.count})
+                </button>
+              {/each}
+            </div>
+          {/if}
+          <h3 class="t-label">{selected.isTest ? 'Test files' : 'Source files'}</h3>
+          <div class="chips file-members">
+            {#each selectedMembers as item}<button class="t-mono" onclick={() => openInEditor(item.id)}>{item.id}</button>{/each}
+          </div>
+        </div>
+      {:else if selected}
         <div class="ins-body">
           {#if selected.change}
             <h3 class="t-label">What changed</h3>
@@ -1208,6 +1277,10 @@
 </main>
 
 <style>
+  .evidence-list { list-style: none; padding: 0; }
+  .evidence-list li { display: grid; gap: 8px; padding: 14px 0; border-bottom: 1px solid var(--hairline); }
+  .evidence-list button { text-align: left; color: var(--text); overflow-wrap: anywhere; }
+  .file-members button { text-align: left; overflow-wrap: anywhere; }
   main {
     position: relative;
     height: 100dvh;
@@ -1250,6 +1323,7 @@
   .top {
     top: 0;
     justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   .bottom {
@@ -1272,6 +1346,8 @@
     align-items: center;
     gap: 8px;
     pointer-events: auto;
+    flex-wrap: wrap;
+    min-width: 0;
   }
 
   .anchor {
@@ -1333,6 +1409,9 @@
   .repo em {
     color: var(--text-3);
     font-style: normal;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .dot {
@@ -1491,14 +1570,6 @@
 
   .swatch.indirect {
     background: repeating-linear-gradient(90deg, var(--indirect) 0 7px, transparent 7px 12px);
-  }
-
-  .swatch.bridge {
-    background: repeating-linear-gradient(90deg, var(--bridge) 0 2px, transparent 2px 7px);
-  }
-
-  .swatch.group {
-    background: var(--group);
   }
 
   .gauge {
@@ -1837,22 +1908,8 @@
     --edge-color: var(--indirect);
   }
 
-  :global(.svelte-flow__edge.bridge-edge) {
-    --edge-color: var(--bridge);
-    --edge-width: 2.4;
-  }
-
-  :global(.svelte-flow__edge.group-edge) {
-    --edge-color: var(--group);
-    --edge-width: 1.4;
-  }
-
   :global(.svelte-flow__edge.indirect-edge .svelte-flow__edge-path) {
     stroke-dasharray: 7 9;
-  }
-
-  :global(.svelte-flow__edge.bridge-edge .svelte-flow__edge-path) {
-    stroke-dasharray: 2 7;
   }
 
   /* Focus only changes emphasis, never colour: the file's own links come
@@ -1882,6 +1939,10 @@
   }
 
   /* --- Adaptations -------------------------------------------------------- */
+
+  @media (max-width: 1100px) {
+    .repo em { display: none; }
+  }
 
   @media (max-width: 900px) {
     .chrome.top {

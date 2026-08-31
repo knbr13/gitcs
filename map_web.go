@@ -47,17 +47,7 @@ func runWebMap() error {
 	if err != nil {
 		return fmt.Errorf("could not find the current folder: %w", err)
 	}
-	repo, err := git.PlainOpenWithOptions(workingDirectory, &git.PlainOpenOptions{DetectDotGit: true})
-	if err != nil {
-		return fmt.Errorf("the current folder is not inside a Git repository: %w", err)
-	}
-	worktree, err := repo.Worktree()
-	if err != nil {
-		return fmt.Errorf("could not read the repository worktree: %w", err)
-	}
-	root := worktree.Filesystem.Root()
-
-	server, err := newMapWebServer(root, repo, worktree, openFileInVSCodeAtLine)
+	server, err := newMapWebServerForDirectory(workingDirectory, openFileInVSCodeAtLine)
 	if err != nil {
 		return err
 	}
@@ -106,7 +96,7 @@ func newMapWebServer(
 	worktree *git.Worktree,
 	opener func(string, int) error,
 ) (*mapWebServer, error) {
-	snapshot, err := buildMapSnapshot(root, repo, worktree)
+	snapshot, err := buildDirectoryMapSnapshot(root, repo, worktree)
 	if err != nil {
 		return nil, fmt.Errorf("build initial repository map: %w", err)
 	}
@@ -232,7 +222,7 @@ func writeServerEvent(writer io.Writer, name string, event mapEvent) {
 }
 
 func (server *mapWebServer) rebuild() {
-	snapshot, err := buildMapSnapshot(server.root, server.repo, server.worktree)
+	snapshot, err := buildDirectoryMapSnapshot(server.root, server.repo, server.worktree)
 	server.mu.Lock()
 	defer server.mu.Unlock()
 	if err != nil {

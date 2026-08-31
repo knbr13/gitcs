@@ -31,9 +31,32 @@ go run . map
 
 The map is served only on `127.0.0.1:7331`. Release builds produced by
 `make build` embed the browser UI, so Node is not required on the machine
-running `gitcs`. The browser UI has three live views: current relevant changes,
-all source-code connections, and live progress/status as the local watcher
-rebuilds the map.
+running `gitcs`. The browser UI has three live views: what is changing right
+now, every source-code connection, and the whole graph with changes
+highlighted.
+
+#### Supported languages
+
+`gitcs map` draws connections for:
+
+| Language | What it reads |
+| --- | --- |
+| Go | Top-level function definitions and calls between files |
+| JavaScript / TypeScript | `import`, `export ... from`, `import()`, `require()` — including `.jsx`, `.tsx`, `.mjs`, `.cjs` |
+| Svelte / Vue | Imports inside `<script>` blocks |
+| Rust | `mod` declarations and `use` paths, across a Cargo workspace |
+
+Module resolution follows each ecosystem's own rules, so it works on real
+projects rather than only tidy ones: extensionless imports and directory
+`index` files resolve, TypeScript's `./thing.js`-means-`thing.ts` convention is
+understood, and `tsconfig.json`/`jsconfig.json` path aliases (`@/components/…`)
+are read. Every directory with a `package.json` or `tsconfig.json` counts as its
+own project, so nested clients and monorepo packages each get their own aliases
+and entry points.
+
+Imports of published packages produce no connection — only files that are
+actually in the repository become nodes. Files in other languages still appear
+on the map with their Git history; they simply have no connections drawn.
 
 The basic usage of this tool is to just run it, it will generate a graph of commits from the last 6 months.
 ```bash

@@ -69,12 +69,32 @@ func analyzeRepositoryGraph(root string) (*Graph, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not build the project graph: %w", err)
 	}
+	analyzers, err := repositoryAnalyzers(root, graph)
+	if err != nil {
+		return nil, err
+	}
+	if err := applyAnalyzers(root, files, graph, analyzers); err != nil {
+		return nil, fmt.Errorf("could not analyze project connections: %w", err)
+	}
+	return graph, nil
+}
+
+// repositoryAnalyzers assembles the language analyzers for this repository.
+// Every analyzer is asked about every file and answers for the languages it
+// knows, so a mixed repository -- a Rust service with a TypeScript client, say
+// -- produces one graph rather than one per language.
+//
+// The Go analyzer is the only one that needs preparing up front, because it
+// indexes every function in the repository before it can resolve a single call.
+func repositoryAnalyzers(root string, graph *Graph) ([]Analyzer, error) {
 	goAnalyzer, err := NewGoAnalyzer(graph)
 	if err != nil {
 		return nil, fmt.Errorf("could not prepare the Go analyzer: %w", err)
 	}
-	if err := applyAnalyzers(root, files, graph, []Analyzer{goAnalyzer}); err != nil {
-		return nil, fmt.Errorf("could not analyze project connections: %w", err)
-	}
-	return graph, nil
+
+	return []Analyzer{
+		goAnalyzer,
+		NewECMAScriptAnalyzer(root, graph),
+		NewRustAnalyzer(graph),
+	}, nil
 }

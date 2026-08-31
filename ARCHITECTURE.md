@@ -166,6 +166,9 @@ Example:
 | `graph.go` | Core graph data structures: nodes and edges |
 | `analyzer.go` | Generic analyzer interface |
 | `go_analyzer.go` | Go-specific analyzer using Go AST parsing |
+| `ecmascript_analyzer.go` | JavaScript/TypeScript/Svelte/Vue import analyzer |
+| `rust_analyzer.go` | Rust module-tree analyzer (`mod` and `use`) |
+| `source_text.go` | Comment stripping and string masking shared by the pattern-based analyzers |
 | `map_learning.go` | Shared Git change status and activity aggregation helpers |
 | `map_assets_dev.go` | Serves `frontend/dist` from disk in development |
 | `map_assets_embed.go` | Embeds `frontend/dist` into release binaries |
@@ -257,6 +260,54 @@ called.
 
 Current limitation: this is a lightweight analyzer. It understands simple
 top-level Go functions and simple calls, but it is not a full Go type checker.
+
+## 9b. ECMAScript And Rust Analysis
+
+Files: `ecmascript_analyzer.go`, `rust_analyzer.go`, `source_text.go`
+
+Go can be parsed with the standard library. The other languages cannot, so these
+two analyzers read *declarations* rather than full syntax trees: an import
+statement, a `mod`, a `use`. That is enough to recover a file-level dependency
+graph, and it keeps `gitcs` free of a compiler toolchain for every language it
+supports.
+
+Reading declarations with patterns has one obvious failure mode -- a commented
+out or quoted import looks exactly like a real one -- so `source_text.go` runs
+two passes before any pattern does:
+
+```text
+stripComments()       -> replaces comments with blanks, respecting string literals
+maskStringContents()  -> replaces each literal's contents with an opaque token
+```
+
+A specifier is only accepted if it came back from a masked token, so a file that
+merely *talks* about an import never gains an edge from it.
+
+**ECMAScript** (`.js .jsx .mjs .cjs .ts .tsx .mts .cts`, plus the `<script>`
+blocks of `.svelte` and `.vue`) resolves specifiers the way a bundler does:
+
+```text
+"./routes"      -> ./routes.ts, .tsx, .js, .jsx, .svelte, ...
+"./components"  -> ./components/index.ts, /index.tsx, ...
+"./routes.js"   -> ./routes.ts        (TypeScript ESM writes the emitted extension)
+"@/button"      -> tsconfig compilerOptions.paths
+```
+
+Every directory holding a `package.json`, `tsconfig.json`, or `jsconfig.json` is
+treated as its own project, so a client under `frontend/` and each package of a
+monorepo get their own aliases and their own entry points. An alias declared in
+one package deliberately does not resolve in another.
+
+**Rust** follows the module tree through both of the ways Rust expresses it:
+`mod foo;` creates the link to a child module file, and `use crate::foo::bar`
+follows one. Both file layouts are handled (`foo.rs` and `foo/mod.rs`), grouped
+imports are expanded (`use crate::{a, b::c}`), and `crate` is resolved against
+the nearest ancestor holding `lib.rs` or `main.rs` -- so each member of a Cargo
+workspace resolves against its own crate root instead of a neighbour's.
+
+In every case an unresolved specifier produces no edge. An import of a published
+package is not part of the repository graph, and saying nothing about it is more
+honest than inventing a node for it.
 
 ## 10. Git Changes And Summaries
 
@@ -480,7 +531,10 @@ Things the project avoids guessing:
 
 ## 17. Current Limitations
 
-- Only Go files get rich symbol and call analysis.
+- Only Go files get symbol-level (function call) analysis. ECMAScript and Rust
+  are analyzed at file level, through their imports and module declarations.
+- Languages other than Go, ECMAScript and Rust appear as nodes but have no
+  connections.
 - Frontend/backend categorization is currently done in the browser from file
   path and language.
 - The browser layout is custom/manual, not a full graph layout engine.
@@ -497,7 +551,7 @@ To understand the project without getting lost:
 3. `map.go`
 4. `graph.go`
 5. `map_scan.go`, `map_build.go`
-6. `go_analyzer.go`
+6. `go_analyzer.go`, `ecmascript_analyzer.go`, `rust_analyzer.go`
 7. `map_api.go`
 8. `map_description.go`
 9. `map_web.go`
